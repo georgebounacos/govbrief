@@ -1,5 +1,8 @@
 <?php
 
+// Load cache clearing admin page
+require_once get_stylesheet_directory() . '/clear-cache-admin.php';
+
 // === Enqueue Parent Styles ===
 function generatepress_child_enqueue_styles() {
     wp_enqueue_style('generatepress-parent-style', get_template_directory_uri() . '/style.css');
@@ -1419,7 +1422,276 @@ add_action('save_post_daily-headlines', function($post_id) {
         $cache_key = 'govbrief_cards_' . md5($headline_date);
         delete_transient($cache_key);
     }
-    
+    // ========================================
+// CODE SNIPPETS (migrated from plugin)
+// ========================================
+
+// === Heather's Headlines: Search & Export Tool ===
+// Shortcode: [gbt_search]
+// REST endpoint for tag autocomplete: /wp-json/gbt/v1/tags?q=mai
+add_action('rest_api_init', function(){
+  register_rest_route('gbt/v1', '/tags', [
+    'methods'  => 'GET',
+    'callback' => function(\WP_REST_Request $req){
+      $q = sanitize_text_field($req->get_param('q'));
+      $args = [
+        'taxonomy'   => 'post_tag',
+        'hide_empty' => false,
+        'number'     => 20,
+        'orderby'    => 'count',
+        'order'      => 'DESC',
+      ];
+      if ($q !== '') {
+        $args['name__like'] = $q;
+      }
+      $terms = get_terms($args);
+      $out = [];
+      if (!is_wp_error($terms)) {
+        foreach ($terms as $t) {
+          $out[] = ['id' => $t->term_id, 'text' => $t->name];
+        }
+      }
+      return rest_ensure_response($out);
+    },
+    'permission_callback' => function(){ return current_user_can('edit_posts'); }
+  ]);
+});
+
+add_shortcode('gbt_search', function(){
+  if (!current_user_can('edit_posts')) {
+    return '<p>Access restricted.</p>';
+  }
+
+  // read inputs
+  $kw    = isset($_GET['kw']) ? sanitize_text_field($_GET['kw']) : '';
+  $tags  = isset($_GET['tags']) ? array_filter(array_map('intval', (array) $_GET['tags'])) : [];
+  $paged = max(1, isset($_GET['pg']) ? intval($_GET['pg']) : 1);
+  $export = isset($_GET['gbt_export']) && $_GET['gbt_export'] === '1';
+
+  // build WP_Query args
+  $args = [
+    'post_type'      => 'daily-headlines',
+    'post_status'    => 'publish',
+    'posts_per_page' => 25,
+    'paged'          => $paged,
+    'orderby'        => 'date',
+    'order'          => 'DESC',
+  ];
+  if ($kw !== '') {
+    $args['s'] = $kw;
+    $args['search_columns'] = ['post_title'];
+  }
+  if (!empty($tags)) {
+    $tax_query = [];
+    foreach ($tags as $tid) {
+      $tax_query[] = [
+        'taxonomy' => 'post_tag',
+        'field'    => 'term_id',
+        'terms'    => [$tid],
+        'operator' => 'IN'
+      ];
+    }
+    if (count($tax_query) > 1) {
+      $tax_query['relation'] = 'AND';
+    }
+    $args['tax_query'] = $tax_query;
+  }
+
+  // export CSV if requested
+  if ($export) {
+    $all_args = $args;
+    $all_args['posts_per_page'] = -1;
+    $all_args['paged'] = 1;
+    $q = new WP_Query($all_args);
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=govbrief-results.csv');
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['ID','Date','Title','Categories','Tags','Permalink']);
+    while ($q->have_posts()) { $q->the_post();
+      $id   = get_the_ID();
+      $cats = wp_get_post_terms($id, 'category', ['fields'=>'names']);
+      $tg   = wp_get_post_terms($id, 'post_tag',  ['fields'=>'names']);
+      fputcsv($out, [
+        $id,
+        get_the_date('Y-m-d', $id),
+        html_entity_decode( get_the_title($id), ENT_QUOTES ),
+        implode(', ', $cats),
+        implode(', ', $tg),
+        get_permalink($id),
+      ]);
+    }
+    wp_reset_postdata();
+    fclose($out);
+    exit;
+  }
+
+  // run query for on-page results
+  $q = new WP_Query($args);
+  $base = esc_url(remove_query_arg(['pg','gbt_export']));
+
+  ob_start(); ?>
+  <div class="gbt-wrap">
+    <form method="get" action="<?php echo $base; ?>" class="gbt-form" style="margin-bottom:12px;">
+      <label style="display:block;margin-bottom:6px;">
+        Headline words
+        <input type="search" name="kw" value="<?php echo esc_attr($kw); ?>" placeholder="type words in the headline" style="width:100%;max-width:480px;">
+      </label>
+
+      <label style="display:block;margin-bottom:6px;">
+        Tags
+        <select id="gbt-tagpicker" name="tags[]" multiple="multiple" style="width:100%;max-width:640px;"></select>
+      </label>
+
+      <button type="submit">Search</button>
+      <?php if ($q->have_posts()) : ?>
+        <a href="<?php echo esc_url(add_query_arg('gbt_export','1',$base . (strpos($base,'?')!==false ? '' : '?' ) . http_build_query(['kw'=>$kw,'tags'=>$tags]))); ?>" class="button" style="margin-left:8px;">Download CSV</a>
+      <?php endif; ?>
+    </form>
+
+    <div class="gbt-results">
+      <table class="wp-list-table widefat fixed striped">
+        <thead>
+          <tr>
+            <th style="width:80px;">Date</th>
+            <th>Title</th>
+            <th style="width:22%;">Categories</th>
+            <th style="width:22%;">Tags</th>
+          </tr>
+        </thead>
+        <tbody>
+        <?php if ($q->have_posts()) : while ($q->have_posts()) : $q->the_post();
+          $id   = get_the_ID();
+          $cats = wp_get_post_terms($id, 'category', ['fields'=>'names']);
+          $tg   = wp_get_post_terms($id, 'post_tag',  ['fields'=>'names']); ?>
+          <tr>
+            <td><?php echo esc_html( get_the_date('Y-m-d') ); ?></td>
+            <td><a href="<?php the_permalink(); ?>" target="_blank" rel="noopener"><?php the_title(); ?></a></td>
+            <td><?php echo esc_html(implode(', ', $cats)); ?></td>
+            <td><?php echo esc_html(implode(', ', $tg)); ?></td>
+          </tr>
+        <?php endwhile; else: ?>
+          <tr><td colspan="4">No results.</td></tr>
+        <?php endif; wp_reset_postdata(); ?>
+        </tbody>
+      </table>
+
+      <?php
+      if ($q->max_num_pages > 1) {
+        $cur = max(1, $paged);
+        echo '<p style="margin-top:10px;">';
+        if ($cur > 1) {
+          $prev_url = esc_url(add_query_arg('pg', $cur - 1, $base . (strpos($base,'?')!==false ? '' : '?' ) . http_build_query(['kw'=>$kw,'tags'=>$tags])));
+          echo '<a href="'.$prev_url.'">« Prev</a> ';
+        }
+        echo 'Page '.$cur.' of '.$q->max_num_pages;
+        if ($cur < $q->max_num_pages) {
+          $next_url = esc_url(add_query_arg('pg', $cur + 1, $base . (strpos($base,'?')!==false ? '' : '?' ) . http_build_query(['kw'=>$kw,'tags'=>$tags])));
+          echo ' <a href="'.$next_url.'">Next »</a>';
+        }
+        echo '</p>';
+      }
+      ?>
+    </div>
+  </div>
+  <?php
+  add_action('wp_footer', function() use ($tags){
+    ?>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
+    <script>
+      (function(){
+        var preselected = <?php echo wp_json_encode(array_values($tags)); ?>;
+        function initSelect(){
+          var $el = jQuery('#gbt-tagpicker');
+          if (!$el.length) return;
+
+          $el.select2({
+            ajax: {
+              url: '<?php echo esc_url( rest_url('gbt/v1/tags') ); ?>',
+              dataType: 'json',
+              delay: 250,
+              data: function (params) { return { q: params.term || '' }; },
+              processResults: function (data) { return { results: data }; },
+              cache: true
+            },
+            placeholder: 'type to find tags',
+            minimumInputLength: 2,
+            width: 'resolve'
+          });
+
+          if (preselected && preselected.length){
+            jQuery.ajax({
+              url: '<?php echo esc_url( rest_url('gbt/v1/tags') ); ?>',
+              data: { q: '' },
+              success: function(data){
+                var map = {};
+                data.forEach(function(it){ map[it.id] = it.text; });
+                preselected.forEach(function(id){
+                  var opt = new Option(map[id] || ('#'+id), id, true, true);
+                  $el.append(opt);
+                });
+                $el.trigger('change');
+              }
+            });
+          }
+        }
+        if (window.jQuery) initSelect(); else document.addEventListener('DOMContentLoaded', initSelect);
+      })();
+    </script>
+    <?php
+  });
+  return ob_get_clean();
+});
+
+
+// === Force Elementor Google Fonts to HTTPS ===
+add_filter('elementor/frontend/print_google_fonts_url', function($url) {
+  return str_replace('http://','https://',$url);
+});
+
+
+// === Caption on Featured Image ===
+add_filter('post_thumbnail_html', 'custom_add_post_thumbnail_caption', 10, 3);
+function custom_add_post_thumbnail_caption($html, $post_id, $post_thumbnail_id) {
+  if (empty($html)) { 
+    return $html;
+  }
+  
+  $caption = wp_get_attachment_caption($post_thumbnail_id);
+  
+  if ($caption && strpos($html, 'wp-caption-text') === false) {
+    return '<div class="wp-caption thumb-caption">' 
+           . $html 
+           . '<p class="wp-caption-text thumb-caption-text">' . esc_html($caption) . '</p></div>';
+  }
+  
+  return $html;
+}
+
+
+// === Kill ACF Log Spam ===
+// Mute the "acf' domain was triggered too early" notice
+add_filter('doing_it_wrong_trigger_error', function($trigger, $function, $message, $version){
+  if (strpos($message, "acf' domain was triggered too early") !== false) {
+    return false;
+  }
+  return $trigger;
+}, 10, 4);
+
+// Always make ACF text-based fields return a string
+add_filter('acf/format_value/type=text', function($value){
+  return is_string($value) ? $value : '';
+}, 99);
+
+add_filter('acf/format_value/type=textarea', function($value){
+  return is_string($value) ? $value : '';
+}, 99);
+
+add_filter('acf/format_value/type=wysiwyg', function($value){
+  return is_string($value) ? $value : '';
+}, 99);
+
     // Also clear homepage cards cache since it links to latest post
     delete_transient('govbrief_homepage_cards_6');
 }, 10, 1);
