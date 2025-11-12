@@ -1,7 +1,5 @@
 <?php
 
-// Load cache clearing admin page
-require_once get_stylesheet_directory() . '/clear-cache-admin.php';
 
 // === Enqueue Parent Styles ===
 function generatepress_child_enqueue_styles() {
@@ -1414,14 +1412,14 @@ if( function_exists('acf_add_options_page') ) {
 }
 
 // === Auto-clear cards cache when headlines are updated ===
-add_action('save_post_daily-headlines', function($post_id) {
+//add_action('save_post_daily-headlines', function($post_id) {
     // Get the headline_date for this post
-    $headline_date = get_field('headline_date', $post_id);
-    if($headline_date) {
+  //  $headline_date = get_field('headline_date', $post_id);
+    //if($headline_date) {
         // Clear the cache for this specific date
-        $cache_key = 'govbrief_cards_' . md5($headline_date);
-        delete_transient($cache_key);
-    }
+     //   $cache_key = 'govbrief_cards_' . md5($headline_date);
+       // delete_transient($cache_key);
+   // }
     // ========================================
 // CODE SNIPPETS (migrated from plugin)
 // ========================================
@@ -1694,4 +1692,3 @@ add_filter('acf/format_value/type=wysiwyg', function($value){
 
     // Also clear homepage cards cache since it links to latest post
     delete_transient('govbrief_homepage_cards_6');
-}, 10, 1);
