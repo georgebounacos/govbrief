@@ -1701,3 +1701,6 @@ add_filter('acf/format_value/type=wysiwyg', function($value){
     delete_transient('govbrief_homepage_cards_6');
 
 // Test deployment - this comment will verify the workflow works safely
+
+// Test deployment - this comment will verify the workflow works safely
+// Second test - workflow should now be enabled
