@@ -1,0 +1,32 @@
+name: Deploy to Pagely
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Deploy via SFTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: sftp.pagely.com
+          username: ftp47wcjtyW619H0pn
+          password: ${{ secrets.SFTP_PASSWORD }}
+          protocol: sftp
+          port: 22
+          local-dir: ./wp-content/
+          server-dir: /wp-content/
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.DS_Store
