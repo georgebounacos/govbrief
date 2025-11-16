@@ -1235,6 +1235,43 @@ function govbrief_homepage_cards_shortcode($atts) {
         return '<p>No recent headlines found.</p>';
     }
     
+    // Get the date from the first headline to count ALL cards from that day
+    $most_recent_date = get_field('headline_date', $national_headlines[0]->ID);
+    $total_count_for_day = 0;
+    
+    if($most_recent_date) {
+        // Query for ALL headlines from that specific date
+        $all_day_headlines = get_posts([
+            'post_type' => 'daily-headlines',
+            'posts_per_page' => -1, // Get all
+            'meta_query' => [[
+                'key' => 'headline_date',
+                'value' => $most_recent_date,
+                'compare' => '=',
+                'type' => 'DATE'
+            ]]
+        ]);
+        
+        // Filter for national edition to get true count
+        foreach($all_day_headlines as $day_headline) {
+            $editions = get_field('include_in_editions', $day_headline->ID);
+            $is_national = false;
+            if(is_array($editions) && in_array('national', $editions)) {
+                $is_national = true;
+            } elseif($editions === 'national') {
+                $is_national = true;
+            }
+            if($is_national) {
+                $total_count_for_day++;
+            }
+        }
+    }
+    
+    // Fallback to displayed count if we couldn't get the day's total
+    if($total_count_for_day == 0) {
+        $total_count_for_day = count($national_headlines);
+    }
+    
 // Find the most recent daily post by calendar_date (ACF field returns Y-m-d format)
     $latest_daily_post = get_posts([
         'post_type' => 'post',
@@ -1255,10 +1292,14 @@ function govbrief_homepage_cards_shortcode($atts) {
     <div class="govbrief-homepage-cards">
         <div class="homepage-cards-grid">
             <?php
+            $counter = 1;
+            
             foreach($national_headlines as $headline) {
                 $title = $headline->post_title;
                 $link = get_field('headline_link', $headline->ID);
                 $callout = get_field('story_callout', $headline->ID);
+                $source = get_field('headline_source', $headline->ID);
+                $headline_date = get_field('headline_date', $headline->ID);
                 
                 $category = 'News';
                 $color = '#6b7280';
@@ -1283,16 +1324,26 @@ function govbrief_homepage_cards_shortcode($atts) {
                 ?>
                 <a href="<?php echo esc_url($link); ?>" class="mini-card" target="_blank" rel="noopener">
                     <div class="mini-category-bar" style="background: <?php echo $color; ?>;">
-                        <?php echo esc_html($category); ?>
+                        <span><?php echo esc_html($category); ?></span>
+                        <span class="story-number"><?php echo $counter; ?> of <?php echo $total_count_for_day; ?></span>
                     </div>
                     <div class="mini-card-content">
                         <h3 class="mini-card-title"><?php echo esc_html($title); ?></h3>
                         <?php if($callout): ?>
                             <div class="mini-callout"><?php echo esc_html($callout); ?></div>
                         <?php endif; ?>
+                        
+                        <?php if($source): ?>
+                            <p class="card-source">Source: <?php echo esc_html($source); ?></p>
+                        <?php endif; ?>
+                        
+                        <?php if($headline_date): ?>
+                            <p class="card-date"><?php echo date('F j, Y', strtotime($headline_date)); ?></p>
+                        <?php endif; ?>
                     </div>
                 </a>
                 <?php
+                $counter++;
             }
             ?>
         </div>
@@ -1330,12 +1381,19 @@ function govbrief_homepage_cards_shortcode($atts) {
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .mini-category-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         padding: 8px 12px;
         color: white;
         font-weight: 700;
         text-transform: uppercase;
         font-size: 10px;
         letter-spacing: 0.5px;
+    }
+    .mini-category-bar .story-number {
+        font-size: 9px;
+        opacity: 0.9;
     }
     .mini-card-content { padding: 15px; }
     .mini-card-title {
@@ -1353,6 +1411,17 @@ function govbrief_homepage_cards_shortcode($atts) {
         font-size: 13px;
         font-weight: 600;
         color: #1f2937;
+    }
+    .card-source {
+        color: #6b7280;
+        font-size: 13px;
+        margin: 10px 0 0 0;
+        font-style: italic;
+    }
+    .card-date {
+        color: #9ca3af;
+        font-size: 12px;
+        margin: 5px 0 0 0;
     }
     .homepage-cards-button {
         text-align: center;
@@ -1693,14 +1762,3 @@ add_filter('acf/format_value/type=wysiwyg', function($value){
 
     // Also clear homepage cards cache since it links to latest post
     delete_transient('govbrief_homepage_cards_6');
-
-  return is_string($value) ? $value : '';
-}, 99);
-
-    // Also clear homepage cards cache since it links to latest post
-    delete_transient('govbrief_homepage_cards_6');
-
-// Test deployment - this comment will verify the workflow works safely
-
-// Test deployment - this comment will verify the workflow works safely
-// Second test - workflow should now be enabled
