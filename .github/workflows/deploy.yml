@@ -14,19 +14,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+        
       - name: Deploy via SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: sftp.pagely.com
-          username: ftp47wcjtyW619H0pn
-          password: ${{ secrets.SFTP_PASSWORD }}
-          protocol: sftp
-          port: 22
-          local-dir: ./wp-content/
-          server-dir: /wp-content/
-          dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/.DS_Store
+        env:
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+        run: |
+          lftp -c "
+          set sftp:auto-confirm yes;
+          open -u ftp47wcjtyW619H0pn,$SFTP_PASSWORD sftp://sftp.pagely.com:22;
+          mirror --reverse --verbose --delete-first --only-newer ./wp-content/ /wp-content/;
+          bye;
+          "
