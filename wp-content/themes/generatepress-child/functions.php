@@ -1693,3 +1693,11 @@ add_filter('acf/format_value/type=wysiwyg', function($value){
 
     // Also clear homepage cards cache since it links to latest post
     delete_transient('govbrief_homepage_cards_6');
+
+  return is_string($value) ? $value : '';
+}, 99);
+
+    // Also clear homepage cards cache since it links to latest post
+    delete_transient('govbrief_homepage_cards_6');
+
+// Test deployment - this comment will verify the workflow works safely
