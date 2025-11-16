@@ -272,7 +272,7 @@ $category_colors = [
             background: #333;
             color: white;
             padding: 8px 15px;
-            margin: 20px -15px 12px -15px;
+            margin: 20px -30px 12px -30px;
             font-weight: bold;
             text-transform: uppercase;
             font-size: 13px;
@@ -299,9 +299,9 @@ $category_colors = [
         /* Content area for image export */
         #export-content {
             background: white;
-            padding: 20px;
+            padding: 30px;
             padding-bottom: 80px;
-            max-width: 600px;
+            width: 780px;
             margin: 0 auto;
         }
         
