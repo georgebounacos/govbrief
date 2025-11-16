@@ -1,0 +1,18 @@
+# WordPress core files (we're only tracking custom code)
+*.log
+.htaccess
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
