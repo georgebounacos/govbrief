@@ -1,5 +1,6 @@
 <?php
-
+// Test deployment - 2025-11-15
+// This comment tests the GitHub Actions → Pagely SFTP pipeline
 
 // === Enqueue Parent Styles ===
 function generatepress_child_enqueue_styles() {
