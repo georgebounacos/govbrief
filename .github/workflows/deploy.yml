@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to Production
+    name: Deploy Custom Code Only
     runs-on: ubuntu-latest
     
     steps:
@@ -17,13 +17,35 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
         
-      - name: Deploy via SFTP
+      - name: Deploy Child Theme
         env:
           SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
         run: |
           lftp -c "
           set sftp:auto-confirm yes;
           open -u ftp47wcjtyW619H0pn,$SFTP_PASSWORD sftp://sftp.pagely.com:22;
-          mirror --reverse --verbose --delete-first --only-newer ./wp-content/ /wp-content/;
+          mirror --reverse --verbose --only-newer ./wp-content/themes/generatepress-child/ /wp-content/themes/generatepress-child/;
+          bye;
+          "
+      
+      - name: Deploy Intensity Score Plugin
+        env:
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+        run: |
+          lftp -c "
+          set sftp:auto-confirm yes;
+          open -u ftp47wcjtyW619H0pn,$SFTP_PASSWORD sftp://sftp.pagely.com:22;
+          mirror --reverse --verbose --only-newer ./wp-content/plugins/gov-brief-intensity-score/ /wp-content/plugins/gov-brief-intensity-score/;
+          bye;
+          "
+      
+      - name: Deploy Publisher Simple Plugin
+        env:
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+        run: |
+          lftp -c "
+          set sftp:auto-confirm yes;
+          open -u ftp47wcjtyW619H0pn,$SFTP_PASSWORD sftp://sftp.pagely.com:22;
+          mirror --reverse --verbose --only-newer ./wp-content/plugins/govbrief-publisher-simple/ /wp-content/plugins/govbrief-publisher-simple/;
           bye;
           "
