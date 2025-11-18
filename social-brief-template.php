@@ -301,7 +301,7 @@ $category_colors = [
             background: white;
             padding: 30px;
             padding-bottom: 80px;
-            width: 780px;
+            width: 550px;
             margin: 0 auto;
         }
         
