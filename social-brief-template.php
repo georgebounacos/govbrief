@@ -700,41 +700,36 @@ function downloadAsImage() {
     
     // Show loading message
     const loadingMsg = document.createElement('div');
-    loadingMsg.innerHTML = 'Generating image... please wait...';
+    loadingMsg.innerHTML = 'Generating images... please wait...';
     loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; z-index: 9999; font-size: 18px;';
     document.body.appendChild(loadingMsg);
     
+    const dateStr = '<?php echo $display_date; ?>';
+    
     // Use html2canvas to capture the content
     html2canvas(exportContent, {
-        scale: 2, // Higher quality
+        scale: 2,
         backgroundColor: '#ffffff',
         logging: false,
-        useCORS: true, // CRITICAL: Allow cross-origin images like the logo
-        allowTaint: true, // Allow cross-origin images to taint the canvas
+        useCORS: true,
+        allowTaint: true,
         width: exportContent.scrollWidth,
         height: exportContent.scrollHeight,
         windowWidth: exportContent.scrollWidth,
         windowHeight: exportContent.scrollHeight
     }).then(canvas => {
-        // Convert canvas to blob
+        // Download clean image
         canvas.toBlob(function(blob) {
-            // Create download link
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            const dateStr = '<?php echo $display_date; ?>';
             link.download = dateStr + '-govbrief-social.png';
             link.href = url;
             link.click();
-            
-            // Cleanup
             URL.revokeObjectURL(url);
-            document.body.removeChild(loadingMsg);
             
-            // Restore hidden elements
-            if(dateSelector) dateSelector.style.display = '';
-            linksSection.forEach(section => section.style.display = '');
-            
-            alert('Image downloaded! You can now crop this long vertical strip however you need for your social media posts.');
+            // Now create reference image with pixel markers
+            loadingMsg.innerHTML = 'Creating reference image...';
+            createReferenceImage(canvas, dateStr);
         }, 'image/png');
     }).catch(error => {
         console.error('Error generating image:', error);
@@ -745,6 +740,83 @@ function downloadAsImage() {
         if(dateSelector) dateSelector.style.display = '';
         linksSection.forEach(section => section.style.display = '');
     });
+}
+
+function createReferenceImage(originalCanvas, dateStr) {
+    const loadingMsg = document.querySelector('div[style*="Generating"]');
+    
+    // Create new canvas for reference image
+    const refCanvas = document.createElement('canvas');
+    refCanvas.width = originalCanvas.width + 200; // Add space for ruler on left
+    refCanvas.height = originalCanvas.height;
+    const ctx = refCanvas.getContext('2d');
+    
+    // Draw original image offset to make room for ruler
+    ctx.drawImage(originalCanvas, 200, 0);
+    
+    // Draw ruler on the left
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, 200, refCanvas.height);
+    
+    // Draw pixel markers
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'right';
+    
+    // Major marks every 500px
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3;
+    for(let y = 0; y < refCanvas.height; y += 1000) { // every 500px at scale 2
+        ctx.beginPath();
+        ctx.moveTo(150, y);
+        ctx.lineTo(200, y);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#000';
+        ctx.fillText((y/2) + 'px', 140, y + 10);
+    }
+    
+    // Minor marks every 100px
+    ctx.strokeStyle = '#666';
+    ctx.lineWidth = 2;
+    ctx.font = '18px Arial';
+    for(let y = 200; y < refCanvas.height; y += 200) { // every 100px at scale 2
+        if(y % 1000 !== 0) { // Skip major marks
+            ctx.beginPath();
+            ctx.moveTo(170, y);
+            ctx.lineTo(200, y);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#666';
+            ctx.fillText((y/2), 160, y + 8);
+        }
+    }
+    
+    // Highlight sweet spot zones (1400-1800, 2900-3300, etc)
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+    for(let baseY = 2800; baseY < refCanvas.height; baseY += 3200) { // 1400px at scale 2 = 2800, repeat every 1600 = 3200
+        ctx.fillRect(0, baseY, 200, 800); // 400px zone = 800 at scale 2
+    }
+    
+    // Download reference image
+    refCanvas.toBlob(function(blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = dateStr + '-govbrief-REFERENCE.png';
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+        
+        // Cleanup
+        document.body.removeChild(loadingMsg);
+        
+        // Restore hidden elements
+        const dateSelector = document.querySelector('.date-selector');
+        const linksSection = document.querySelectorAll('.links-section');
+        if(dateSelector) dateSelector.style.display = '';
+        linksSection.forEach(section => section.style.display = '');
+        
+        alert('Both images downloaded!\n\n1. Clean image for posting\n2. Reference image with pixel markers\n\nLook at the reference to decide split points, then edit splits.txt');
+    }, 'image/png');
 }
 </script>
 
