@@ -345,7 +345,7 @@ $daily_post_query = new WP_Query(array(
     'meta_query' => array(
         array(
             'key' => 'calendar_date',
-            'value' => $selected_date, // Format: Y-m-d (2025-09-04)
+            'value' => $selected_date,
             'compare' => '=',
             'type' => 'DATE'
         )
@@ -357,18 +357,34 @@ $daily_post_query = new WP_Query(array(
 $daily_post_found = false;
 $found_post_id = null;
 $found_post_title = '';
+$found_calendar_date = '';
+$found_quote_text = '';
+$found_quote_citation = '';
+
 if ($daily_post_query->have_posts()) {
-    $daily_post_query->the_post();
-    global $post;
-    $post = $daily_post_query->post;
-    setup_postdata($post);
     $daily_post_found = true;
-    $found_post_id = get_the_ID();
-    $found_post_title = get_the_title();
+    $queried_post = $daily_post_query->posts[0];
+    $found_post_id = $queried_post->ID;
+    $found_post_title = $queried_post->post_title;
+    
+    // Get the actual ACF values directly
+    $found_calendar_date = get_field('calendar_date', $found_post_id);
+    $found_quote_text = get_field('gbt_quote_text', $found_post_id);
+    $found_quote_citation = get_field('gbt_quote_citation', $found_post_id);
 }
 ?>
 
 <?php if ($daily_post_found): ?>
+<!-- DEBUG INFO -->
+<div class="links-section" style="margin-bottom: 20px; background: #e3f2fd;">
+    <h3>Debug Info</h3>
+    <p><strong>Query Date:</strong> <?php echo $selected_date; ?> (<?php echo $title_date; ?>)</p>
+    <p><strong>Found Post ID:</strong> <?php echo $found_post_id; ?></p>
+    <p><strong>Found Post Title:</strong> <?php echo $found_post_title; ?></p>
+    <p><strong>Calendar Date Field Value:</strong> <?php echo $found_calendar_date; ?></p>
+    <p><strong>Quote Text:</strong> <?php echo !empty($found_quote_text) ? 'EXISTS' : 'EMPTY'; ?></p>
+    <p><strong>Quote Citation:</strong> <?php echo !empty($found_quote_citation) ? 'EXISTS' : 'EMPTY'; ?></p>
+</div>
 <!-- Substack Metrics Section -->
 <div class="links-section" style="margin-bottom: 30px;">
     <h2>For Substack Email - Metrics Images</h2>
