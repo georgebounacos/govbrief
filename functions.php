@@ -270,11 +270,17 @@ function govbrief_get_trending_topics($target_date = null) {
 }
 
 // === Intensity Score Display Function (Styled, with Emoji History) ===
-function govbrief_intensity_display() {
+function govbrief_intensity_display($atts = []) {
     global $post;
+    
+    // Support post_id attribute for use in templates
+    $atts = shortcode_atts(['post_id' => null], $atts);
+    $post_id = $atts['post_id'] ? intval($atts['post_id']) : ($post ? $post->ID : null);
+    
+    if (!$post_id) return '';
 
     // Pull adjusted score (entered by you)
-    $score = get_field('intensity_score', $post->ID);
+    $score = get_field('intensity_score', $post_id);
     $score = is_numeric($score) ? intval($score) : 100;
 
     // Assign emoji & label
@@ -361,24 +367,28 @@ add_shortcode('intensity-score', 'govbrief_intensity_display');
 
 
 // === Trending Topics Display Box ===
-function govbrief_trending_topics_box() {
+function govbrief_trending_topics_box($atts = []) {
     global $post;
     
-    // Try to get the calendar date from the current post context
+    // Support post_id attribute for use in templates
+    $atts = shortcode_atts(['post_id' => null], $atts);
+    $post_id = $atts['post_id'] ? intval($atts['post_id']) : ($post ? $post->ID : null);
+    
+    if (!$post_id) return '';
+    
+    // Try to get the calendar date from the specified post
     $target_date = null;
-    if ($post && $post->ID) {
-        $hd_raw = get_field('calendar_date', $post->ID) ?: get_the_date('Y-m-d', $post->ID);
-        
-        $dt = DateTime::createFromFormat('F j, Y', $hd_raw);
-        if (!$dt) {
-            $dt = DateTime::createFromFormat('Y-m-d', $hd_raw);
-        }
-        if (!$dt) {
-            $dt = new DateTime();
-        }
-        
-        $target_date = $dt->format('Y-m-d');
+    $hd_raw = get_field('calendar_date', $post_id) ?: get_the_date('Y-m-d', $post_id);
+    
+    $dt = DateTime::createFromFormat('F j, Y', $hd_raw);
+    if (!$dt) {
+        $dt = DateTime::createFromFormat('Y-m-d', $hd_raw);
     }
+    if (!$dt) {
+        $dt = new DateTime();
+    }
+    
+    $target_date = $dt->format('Y-m-d');
     
     $trending = govbrief_get_trending_topics($target_date);
     $cat_names = $trending['categories'];
@@ -492,12 +502,17 @@ add_action('acf/init', function () {
 
 // ========== Frontend: Quote display box (amber stinger) ==========
 if (!function_exists('govbrief_quote_block')) {
-    function govbrief_quote_block() {
+    function govbrief_quote_block($atts = []) {
         global $post;
-        if (!$post || !isset($post->ID)) return '';
+        
+        // Support post_id attribute for use in templates
+        $atts = shortcode_atts(['post_id' => null], $atts);
+        $post_id = $atts['post_id'] ? intval($atts['post_id']) : ($post ? $post->ID : null);
+        
+        if (!$post_id) return '';
 
-        $quote = function_exists('get_field') ? get_field('gbt_quote_text', $post->ID) : '';
-        $cite  = function_exists('get_field') ? get_field('gbt_quote_citation', $post->ID) : '';
+        $quote = function_exists('get_field') ? get_field('gbt_quote_text', $post_id) : '';
+        $cite  = function_exists('get_field') ? get_field('gbt_quote_citation', $post_id) : '';
 
         if (($quote === '' || $quote === null) && ($cite === '' || $cite === null)) return '';
 
@@ -531,7 +546,7 @@ if (!function_exists('govbrief_quote_block')) {
 
 add_action('init', function () {
     if (!shortcode_exists('govbrief_quote')) {
-        add_shortcode('govbrief_quote', function($atts){ return govbrief_quote_block(); });
+        add_shortcode('govbrief_quote', function($atts){ return govbrief_quote_block($atts); });
     }
 });
 
