@@ -345,9 +345,9 @@ $daily_post_query = new WP_Query(array(
     'meta_query' => array(
         array(
             'key' => 'calendar_date',
-            'value' => $title_date, // Format: "November 21, 2025"
+            'value' => $selected_date, // Format: Y-m-d (2025-09-04)
             'compare' => '=',
-            'type' => 'CHAR'
+            'type' => 'DATE'
         )
     ),
     'orderby' => 'date',
