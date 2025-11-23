@@ -393,29 +393,29 @@ if ($daily_post_query->have_posts()) {
     
     <!-- Block 1: Intensity + Trending + Quote -->
     <div id="metrics-block-1" style="background: transparent; padding: 0; width: 800px;">
+        <?php 
+        // Switch to queried post for all three shortcodes
+        global $post;
+        $original_post = $post;
+        $post = $queried_post;
+        setup_postdata($post);
+        ?>
+        
         <div style="margin-bottom: 20px;">
-            <?php 
-            // Temporarily switch to queried post
-            global $post;
-            $original_post = $post;
-            $post = $queried_post;
-            setup_postdata($post);
-            
-            echo do_shortcode('[intensity-score]'); 
-            ?>
+            <?php echo do_shortcode('[intensity-score]'); ?>
         </div>
         <div style="margin-bottom: 20px;">
             <?php echo do_shortcode('[trending_topics_box]'); ?>
         </div>
         <div>
-            <?php 
-            echo do_shortcode('[govbrief_quote]'); 
-            
-            // Restore original post
-            $post = $original_post;
-            wp_reset_postdata();
-            ?>
+            <?php echo do_shortcode('[govbrief_quote]'); ?>
         </div>
+        
+        <?php 
+        // Restore original post
+        $post = $original_post;
+        wp_reset_postdata();
+        ?>
     </div>
     
     <button class="copy-button" onclick="downloadMetricsBlock1()">📥 Download Block 1 (Metrics)</button>
