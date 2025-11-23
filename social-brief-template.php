@@ -411,17 +411,7 @@ if ($daily_post_query->have_posts()) {
     
     <!-- Block 2: Most Read -->
     <div id="metrics-block-2" style="background: transparent; padding: 0; width: 800px;">
-        <?php 
-        // Switch to queried post again
-        $post = $queried_post;
-        setup_postdata($post);
-        
-        echo do_shortcode('[govbrief_most_read]'); 
-        
-        // Restore original post
-        $post = $original_post;
-        wp_reset_postdata();
-        ?>
+        <?php echo do_shortcode('[govbrief_most_read post_id="' . $found_post_id . '"]'); ?>
     </div>
     
     <button class="copy-button" onclick="downloadMetricsBlock2()">📥 Download Block 2 (Most Read)</button>

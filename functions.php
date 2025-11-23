@@ -599,13 +599,18 @@ add_action('acf/init', function () {
 
 // ========== Frontend: Yesterday's Most Read display ==========
 if (!function_exists('govbrief_most_read_from_acf')) {
-    function govbrief_most_read_from_acf() {
+    function govbrief_most_read_from_acf($atts = []) {
         global $post;
-        if (!$post || !isset($post->ID)) return '';
+        
+        // Support post_id attribute for use in templates
+        $atts = shortcode_atts(['post_id' => null], $atts);
+        $post_id = $atts['post_id'] ? intval($atts['post_id']) : ($post ? $post->ID : null);
+        
+        if (!$post_id) return '';
 
-        $blurb  = function_exists('get_field') ? get_field('gbt_mr_blurb', $post->ID) : '';
-        $url    = function_exists('get_field') ? get_field('gbt_mr_url',   $post->ID) : '';
-        $button = function_exists('get_field') ? get_field('gbt_mr_button',$post->ID) : 'Catch Up';
+        $blurb  = function_exists('get_field') ? get_field('gbt_mr_blurb', $post_id) : '';
+        $url    = function_exists('get_field') ? get_field('gbt_mr_url',   $post_id) : '';
+        $button = function_exists('get_field') ? get_field('gbt_mr_button',$post_id) : 'Catch Up';
 
         if (trim((string)$blurb) === '' && trim((string)$url) === '') return '';
 
@@ -654,7 +659,7 @@ if (!function_exists('govbrief_most_read_from_acf')) {
 
 add_action('init', function () {
     if (!shortcode_exists('govbrief_most_read')) {
-        add_shortcode('govbrief_most_read', function($atts){ return govbrief_most_read_from_acf(); });
+        add_shortcode('govbrief_most_read', function($atts){ return govbrief_most_read_from_acf($atts); });
     }
 });
 
