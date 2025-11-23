@@ -336,6 +336,76 @@ $category_colors = [
     </div>
 </div>
 
+<?php
+// Query for the daily post by calendar_date to render shortcodes
+$daily_post_query = new WP_Query(array(
+    'post_type' => 'post',
+    'posts_per_page' => 1,
+    'post_status' => 'publish',
+    'meta_query' => array(
+        array(
+            'key' => 'calendar_date',
+            'value' => $title_date, // Format: "November 21, 2025"
+            'compare' => '=',
+            'type' => 'CHAR'
+        )
+    ),
+    'orderby' => 'date',
+    'order' => 'DESC'
+));
+
+$daily_post_found = false;
+if ($daily_post_query->have_posts()) {
+    $daily_post_query->the_post();
+    $daily_post_found = true;
+    global $post;
+}
+?>
+
+<?php if ($daily_post_found): ?>
+<!-- Substack Metrics Section -->
+<div class="links-section" style="margin-bottom: 30px;">
+    <h2>For Substack Email - Metrics Images</h2>
+    <p>Download images to paste into Substack. The gaps between boxes will be transparent and blend with your email background.</p>
+    
+    <!-- Block 1: Intensity + Trending + Quote -->
+    <div id="metrics-block-1" style="background: transparent; padding: 0; width: 800px;">
+        <div style="margin-bottom: 20px;">
+            <?php echo do_shortcode('[intensity-score]'); ?>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <?php echo do_shortcode('[trending_topics_box]'); ?>
+        </div>
+        <div>
+            <?php echo do_shortcode('[govbrief_quote]'); ?>
+        </div>
+    </div>
+    
+    <button class="copy-button" onclick="downloadMetricsBlock1()">📥 Download Block 1 (Metrics)</button>
+    <p style="font-size: 13px; color: #666; margin-top: 10px;">Intensity Score + Trending Topics + Quote</p>
+    
+    <div style="border-top: 1px solid #ddd; margin: 30px 0;"></div>
+    
+    <!-- Block 2: Most Read -->
+    <div id="metrics-block-2" style="background: transparent; padding: 0; width: 800px;">
+        <?php echo do_shortcode('[govbrief_most_read]'); ?>
+    </div>
+    
+    <button class="copy-button" onclick="downloadMetricsBlock2()">📥 Download Block 2 (Most Read)</button>
+    <p style="font-size: 13px; color: #666; margin-top: 10px;">Yesterday's Most Read (copy the link manually from the button above)</p>
+</div>
+
+<?php 
+    wp_reset_postdata();
+endif; 
+?>
+
+<?php if (!$daily_post_found): ?>
+<div class="links-section" style="margin-bottom: 30px; background: #fff3cd; border: 1px solid #ffc107;">
+    <p style="color: #856404; margin: 0;"><strong>⚠️ No daily post found for <?php echo $title_date; ?></strong></p>
+    <p style="color: #856404; margin: 10px 0 0 0; font-size: 14px;">Make sure you have a published post with the calendar_date field set to "<?php echo $title_date; ?>"</p>
+</div>
+<?php endif; ?>
 
 <!-- Start export content wrapper -->
 <div id="export-content">
@@ -817,6 +887,78 @@ function createReferenceImage(originalCanvas, dateStr) {
         
         alert('Both images downloaded!\n\n1. Clean image for posting\n2. Reference image with pixel markers\n\nLook at the reference to decide split points, then edit splits.txt');
     }, 'image/png');
+}
+
+// Download metrics block 1 (Intensity + Trending + Quote) with transparent gaps
+function downloadMetricsBlock1() {
+    const block = document.getElementById('metrics-block-1');
+    const dateStr = '<?php echo $display_date; ?>';
+    
+    // Show loading message
+    const loadingMsg = document.createElement('div');
+    loadingMsg.innerHTML = 'Generating Block 1 image...';
+    loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; z-index: 9999; font-size: 18px;';
+    document.body.appendChild(loadingMsg);
+    
+    html2canvas(block, {
+        scale: 2,
+        backgroundColor: null, // Transparent background!
+        logging: false,
+        useCORS: true,
+        allowTaint: true
+    }).then(canvas => {
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = dateStr + '-substack-block1-metrics.png';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            document.body.removeChild(loadingMsg);
+            alert('Block 1 downloaded! (Intensity + Trending + Quote)\n\nThe gaps are transparent and will blend with your Substack background.');
+        }, 'image/png');
+    }).catch(error => {
+        console.error('Error generating Block 1:', error);
+        document.body.removeChild(loadingMsg);
+        alert('Error generating image. Please try again.');
+    });
+}
+
+// Download metrics block 2 (Most Read) with transparent background
+function downloadMetricsBlock2() {
+    const block = document.getElementById('metrics-block-2');
+    const dateStr = '<?php echo $display_date; ?>';
+    
+    // Show loading message
+    const loadingMsg = document.createElement('div');
+    loadingMsg.innerHTML = 'Generating Block 2 image...';
+    loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; z-index: 9999; font-size: 18px;';
+    document.body.appendChild(loadingMsg);
+    
+    html2canvas(block, {
+        scale: 2,
+        backgroundColor: null, // Transparent background!
+        logging: false,
+        useCORS: true,
+        allowTaint: true
+    }).then(canvas => {
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = dateStr + '-substack-block2-mostread.png';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            document.body.removeChild(loadingMsg);
+            alert('Block 2 downloaded! (Most Read)\n\nRemember to copy the link URL manually from the button in the box above.');
+        }, 'image/png');
+    }).catch(error => {
+        console.error('Error generating Block 2:', error);
+        document.body.removeChild(loadingMsg);
+        alert('Error generating image. Please try again.');
+    });
 }
 </script>
 
