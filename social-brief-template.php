@@ -359,7 +359,9 @@ $found_post_id = null;
 $found_post_title = '';
 if ($daily_post_query->have_posts()) {
     $daily_post_query->the_post();
-    setup_postdata($daily_post_query->post);
+    global $post;
+    $post = $daily_post_query->post;
+    setup_postdata($post);
     $daily_post_found = true;
     $found_post_id = get_the_ID();
     $found_post_title = get_the_title();
@@ -381,18 +383,8 @@ if ($daily_post_query->have_posts()) {
         <div style="margin-bottom: 20px;">
             <?php echo do_shortcode('[trending_topics_box]'); ?>
         </div>
-        <div style="margin-bottom: 20px;">
-            <?php 
-            $quote_output = do_shortcode('[govbrief_quote]');
-            if (empty(trim($quote_output))) {
-                echo '<div style="background:#fff3cd;border:2px solid #ffc107;padding:15px;border-radius:8px;color:#856404;">';
-                echo '<strong>⚠️ No quote set for this date</strong><br>';
-                echo '<span style="font-size:13px;">Add quote fields in the WordPress editor for this post.</span>';
-                echo '</div>';
-            } else {
-                echo $quote_output;
-            }
-            ?>
+        <div>
+            <?php echo do_shortcode('[govbrief_quote]'); ?>
         </div>
     </div>
     
@@ -959,21 +951,21 @@ function downloadMetricsBlock2() {
     
     html2canvas(block, {
         scale: 2,
-        backgroundColor: null, // Transparent background!
+        backgroundColor: null,
         logging: true,
         useCORS: true,
         allowTaint: true
     }).then(canvas => {
         if (!canvas) {
             document.body.removeChild(loadingMsg);
-            alert('Error: Canvas creation failed');
+            alert('Error: Canvas creation failed. Check browser console for details.');
             return;
         }
         
         canvas.toBlob(function(blob) {
             if (!blob) {
                 document.body.removeChild(loadingMsg);
-                alert('Error: Could not create image blob. The block might be empty.');
+                alert('Error: Could not create image blob. Check browser console for details.');
                 return;
             }
             
@@ -990,7 +982,7 @@ function downloadMetricsBlock2() {
     }).catch(error => {
         console.error('Error generating Block 2:', error);
         document.body.removeChild(loadingMsg);
-        alert('Error generating image: ' + error.message);
+        alert('Error generating image: ' + error.message + '\n\nCheck browser console for details.');
     });
 }
 </script>
