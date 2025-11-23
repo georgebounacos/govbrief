@@ -394,13 +394,27 @@ if ($daily_post_query->have_posts()) {
     <!-- Block 1: Intensity + Trending + Quote -->
     <div id="metrics-block-1" style="background: transparent; padding: 0; width: 800px;">
         <div style="margin-bottom: 20px;">
-            <?php echo do_shortcode('[intensity-score]'); ?>
+            <?php 
+            // Temporarily switch to queried post
+            global $post;
+            $original_post = $post;
+            $post = $queried_post;
+            setup_postdata($post);
+            
+            echo do_shortcode('[intensity-score]'); 
+            ?>
         </div>
         <div style="margin-bottom: 20px;">
             <?php echo do_shortcode('[trending_topics_box]'); ?>
         </div>
         <div>
-            <?php echo do_shortcode('[govbrief_quote]'); ?>
+            <?php 
+            echo do_shortcode('[govbrief_quote]'); 
+            
+            // Restore original post
+            $post = $original_post;
+            wp_reset_postdata();
+            ?>
         </div>
     </div>
     
@@ -411,7 +425,17 @@ if ($daily_post_query->have_posts()) {
     
     <!-- Block 2: Most Read -->
     <div id="metrics-block-2" style="background: transparent; padding: 0; width: 800px;">
-        <?php echo do_shortcode('[govbrief_most_read]'); ?>
+        <?php 
+        // Switch to queried post again
+        $post = $queried_post;
+        setup_postdata($post);
+        
+        echo do_shortcode('[govbrief_most_read]'); 
+        
+        // Restore original post
+        $post = $original_post;
+        wp_reset_postdata();
+        ?>
     </div>
     
     <button class="copy-button" onclick="downloadMetricsBlock2()">📥 Download Block 2 (Most Read)</button>
