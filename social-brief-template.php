@@ -355,10 +355,14 @@ $daily_post_query = new WP_Query(array(
 ));
 
 $daily_post_found = false;
+$found_post_id = null;
+$found_post_title = '';
 if ($daily_post_query->have_posts()) {
     $daily_post_query->the_post();
+    setup_postdata($daily_post_query->post);
     $daily_post_found = true;
-    global $post;
+    $found_post_id = get_the_ID();
+    $found_post_title = get_the_title();
 }
 ?>
 
@@ -367,6 +371,7 @@ if ($daily_post_query->have_posts()) {
 <div class="links-section" style="margin-bottom: 30px;">
     <h2>For Substack Email - Metrics Images</h2>
     <p>Download images to paste into Substack. The gaps between boxes will be transparent and blend with your email background.</p>
+    <p style="font-size: 13px; color: #666;">Using post: <strong><?php echo $found_post_title; ?></strong> (ID: <?php echo $found_post_id; ?>)</p>
     
     <!-- Block 1: Intensity + Trending + Quote -->
     <div id="metrics-block-1" style="background: transparent; padding: 0; width: 800px;">
@@ -376,8 +381,18 @@ if ($daily_post_query->have_posts()) {
         <div style="margin-bottom: 20px;">
             <?php echo do_shortcode('[trending_topics_box]'); ?>
         </div>
-        <div>
-            <?php echo do_shortcode('[govbrief_quote]'); ?>
+        <div style="margin-bottom: 20px;">
+            <?php 
+            $quote_output = do_shortcode('[govbrief_quote]');
+            if (empty(trim($quote_output))) {
+                echo '<div style="background:#fff3cd;border:2px solid #ffc107;padding:15px;border-radius:8px;color:#856404;">';
+                echo '<strong>⚠️ No quote set for this date</strong><br>';
+                echo '<span style="font-size:13px;">Add quote fields in the WordPress editor for this post.</span>';
+                echo '</div>';
+            } else {
+                echo $quote_output;
+            }
+            ?>
         </div>
     </div>
     
@@ -928,6 +943,12 @@ function downloadMetricsBlock1() {
 // Download metrics block 2 (Most Read) with transparent background
 function downloadMetricsBlock2() {
     const block = document.getElementById('metrics-block-2');
+    
+    if (!block) {
+        alert('Error: Could not find Block 2 element');
+        return;
+    }
+    
     const dateStr = '<?php echo $display_date; ?>';
     
     // Show loading message
@@ -939,11 +960,23 @@ function downloadMetricsBlock2() {
     html2canvas(block, {
         scale: 2,
         backgroundColor: null, // Transparent background!
-        logging: false,
+        logging: true,
         useCORS: true,
         allowTaint: true
     }).then(canvas => {
+        if (!canvas) {
+            document.body.removeChild(loadingMsg);
+            alert('Error: Canvas creation failed');
+            return;
+        }
+        
         canvas.toBlob(function(blob) {
+            if (!blob) {
+                document.body.removeChild(loadingMsg);
+                alert('Error: Could not create image blob. The block might be empty.');
+                return;
+            }
+            
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.download = dateStr + '-substack-block2-mostread.png';
@@ -957,7 +990,7 @@ function downloadMetricsBlock2() {
     }).catch(error => {
         console.error('Error generating Block 2:', error);
         document.body.removeChild(loadingMsg);
-        alert('Error generating image. Please try again.');
+        alert('Error generating image: ' + error.message);
     });
 }
 </script>
