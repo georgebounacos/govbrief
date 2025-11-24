@@ -374,7 +374,7 @@ if ($daily_post_query->have_posts()) {
     <p style="font-size: 13px; color: #666;">Using post: <strong><?php echo $found_post_title; ?></strong> (ID: <?php echo $found_post_id; ?>)</p>
     
     <!-- Block 1: Intensity + Trending + Quote -->
-    <div id="metrics-block-1" style="background: transparent; padding: 0; width: 800px;">
+    <div id="metrics-block-1" style="background: transparent; padding: 0; width: 600px;">
         <div style="margin-bottom: 20px;">
             <?php echo do_shortcode('[intensity-score post_id="' . $found_post_id . '"]'); ?>
         </div>
@@ -392,7 +392,7 @@ if ($daily_post_query->have_posts()) {
     <div style="border-top: 1px solid #ddd; margin: 30px 0;"></div>
     
     <!-- Block 2: Most Read -->
-    <div id="metrics-block-2" style="background: transparent; padding: 0; width: 800px;">
+    <div id="metrics-block-2" style="background: transparent; padding: 0; width: 600px;">
         <?php echo do_shortcode('[govbrief_most_read post_id="' . $found_post_id . '"]'); ?>
     </div>
     
