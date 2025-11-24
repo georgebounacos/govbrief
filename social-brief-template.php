@@ -906,7 +906,7 @@ function downloadMetricsBlock1() {
     document.body.appendChild(loadingMsg);
     
     html2canvas(block, {
-        scale: 2,
+        scale: 1.5,
         backgroundColor: null, // Transparent background!
         logging: false,
         useCORS: true,
@@ -948,7 +948,7 @@ function downloadMetricsBlock2() {
     document.body.appendChild(loadingMsg);
     
     html2canvas(block, {
-        scale: 2,
+        scale: 1.5,
         backgroundColor: null,
         logging: true,
         useCORS: true,
