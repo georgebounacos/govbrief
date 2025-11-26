@@ -903,6 +903,9 @@ function downloadMetricsBlock1() {
     const originalWidth = block.style.width;
     block.style.width = '800px';
     
+    // Force reflow/repaint so browser recalculates layout
+    void block.offsetHeight;
+    
     // Show loading message
     const loadingMsg = document.createElement('div');
     loadingMsg.innerHTML = 'Generating Block 1 image...';
@@ -950,6 +953,9 @@ function downloadMetricsBlock2() {
     // Save original width and temporarily expand for capture
     const originalWidth = block.style.width;
     block.style.width = '800px';
+    
+    // Force reflow/repaint so browser recalculates layout
+    void block.offsetHeight;
     
     // Show loading message
     const loadingMsg = document.createElement('div');
