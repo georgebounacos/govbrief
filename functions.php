@@ -354,7 +354,7 @@ function govbrief_intensity_display($atts = []) {
         $out .= '</div>';
     }
 
-    $out .= '<div style="margin-top:4px;font-size:0.97rem;color:#444;line-height:1.5;">';
+    $out .= '<div style="margin-top:4px;font-size:0.97rem;color:#444;line-height:1.5;word-wrap:break-word;overflow-wrap:break-word;">';
     $out .= 'This is an indexed score based on news activity. <strong>100</strong> = our permanent historical baseline that is adjusted for weekdays and weekend days. Scores above 100 mean a busier-than-normal news day.';
     $out .= '</div>';
 
@@ -400,7 +400,7 @@ function govbrief_trending_topics_box($atts = []) {
     $output .= '<span style="font-size:1.1em;">📈</span> What\'s Trending This Week';
     $output .= '</div>';
     
-    $output .= '<div class="trending-explanation" style="font-size:0.9em;color:#666;margin-bottom:16px;line-height:1.4;">';
+    $output .= '<div class="trending-explanation" style="font-size:0.9em;color:#666;margin-bottom:16px;line-height:1.4;word-wrap:break-word;overflow-wrap:break-word;">';
     $output .= 'Based on analysis of the past 7 days of headlines, these are the most frequently covered topics and categories.';
     $output .= '</div>';
     
