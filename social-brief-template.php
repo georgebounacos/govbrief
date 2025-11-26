@@ -899,6 +899,10 @@ function downloadMetricsBlock1() {
     const block = document.getElementById('metrics-block-1');
     const dateStr = '<?php echo $display_date; ?>';
     
+    // Save original width and temporarily expand for capture
+    const originalWidth = block.style.width;
+    block.style.width = '800px';
+    
     // Show loading message
     const loadingMsg = document.createElement('div');
     loadingMsg.innerHTML = 'Generating Block 1 image...';
@@ -912,6 +916,8 @@ function downloadMetricsBlock1() {
         useCORS: true,
         allowTaint: true
     }).then(canvas => {
+        // Restore original width immediately after capture
+        block.style.width = originalWidth;
         canvas.toBlob(function(blob) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -941,6 +947,10 @@ function downloadMetricsBlock2() {
     
     const dateStr = '<?php echo $display_date; ?>';
     
+    // Save original width and temporarily expand for capture
+    const originalWidth = block.style.width;
+    block.style.width = '800px';
+    
     // Show loading message
     const loadingMsg = document.createElement('div');
     loadingMsg.innerHTML = 'Generating Block 2 image...';
@@ -954,6 +964,8 @@ function downloadMetricsBlock2() {
         useCORS: true,
         allowTaint: true
     }).then(canvas => {
+        // Restore original width immediately after capture
+        block.style.width = originalWidth;
         if (!canvas) {
             document.body.removeChild(loadingMsg);
             alert('Error: Canvas creation failed. Check browser console for details.');
