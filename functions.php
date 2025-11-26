@@ -330,7 +330,7 @@ function govbrief_intensity_display($atts = []) {
     wp_reset_postdata();
 
     // Build output
-    $out = '<div class="gb-intensity-container" style="background:#f8f9fa;border:4px solid #007cba;padding:16px;margin-bottom:24px;border-radius:8px;width:800px;">';
+    $out = '<div class="gb-intensity-container" style="background:#f8f9fa;border:4px solid #007cba;padding:16px;margin-bottom:24px;border-radius:8px;width:100%;max-width:none;box-sizing:border-box;">';
 
     $out .= '<div style="font-weight:bold;font-size:1.25em;color:#007cba;margin-bottom:12px;border-bottom:2px solid #007cba;padding-bottom:8px;display:flex;align-items:center;gap:10px;">';
     $out .= '<span style="font-size:1.1em;">' . $emoji . '</span> GovBrief Intensity Score <span style="font-weight:700;color:#24292f;">' . $score . '</span>';
@@ -394,7 +394,7 @@ function govbrief_trending_topics_box($atts = []) {
     $cat_names = $trending['categories'];
     $tag_names = $trending['tags'];
     
-    $output = '<div class="gb-trending-container" style="background:#f8f9fa;border:4px solid #007cba;padding:16px;margin-bottom:24px;border-radius:8px;width:800px;">';
+    $output = '<div class="gb-trending-container" style="background:#f8f9fa;border:4px solid #007cba;padding:16px;margin-bottom:24px;border-radius:8px;width:100%;max-width:none;box-sizing:border-box;">';
     
     $output .= '<div class="trending-header" style="font-weight:bold;font-size:1.25em;color:#007cba;margin-bottom:12px;border-bottom:2px solid #007cba;padding-bottom:8px;">';
     $output .= '<span style="font-size:1.1em;">📈</span> What\'s Trending This Week';
