@@ -45,36 +45,6 @@ function display_daily_headlines() {
 }
 add_shortcode('daily_headlines', 'display_daily_headlines');
 
-// === Enqueue Odometer Script & Styles ===
-function enqueue_odometer_assets() {
-    wp_enqueue_style('odometer-style', 'https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-default.min.css');
-    wp_enqueue_script('odometer-script', 'https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js', array(), null, true);
-}
-add_action('wp_enqueue_scripts', 'enqueue_odometer_assets');
-
-// === Shortcode: Animated Odometer Counter for Headlines ===
-function govbrief_animated_headline_count() {
-    $total = wp_count_posts('daily-headlines')->publish;
-
-    ob_start(); ?>
-    <div class="headline-odometer-wrapper" style="text-align: right;">
-        <div id="headline-odometer" class="odometer" data-count="<?php echo esc_attr($total); ?>" style="font-size: 28px; font-family: 'Roboto Mono', monospace; color: #F58220;"></div>
-        <small style="color: #999;">Headlines Total</small>
-    </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const odometerEl = document.getElementById('headline-odometer');
-            if (odometerEl) {
-                const count = odometerEl.getAttribute('data-count');
-                odometerEl.innerHTML = count;
-            }
-        });
-    </script>
-    <?php
-    return ob_get_clean();
-}
-add_shortcode('animated_headline_count', 'govbrief_animated_headline_count');
-
 
 // === Shortcode: Display Daily Headlines (Admin Only Text) ===
 function display_daily_headlines_text() {
