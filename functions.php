@@ -9,13 +9,6 @@ function generatepress_child_enqueue_styles() {
 add_action('wp_enqueue_scripts', 'generatepress_child_enqueue_styles');
 
 
-// === Relevanssi: Show all search results (no pagination limit) ===
-add_filter('relevanssi_hits_filter', function($hits) {
-    $hits['query']->query_vars['posts_per_page'] = -1; // -1 = unlimited
-    return $hits;
-});
-
-
 // === Shortcode: Display Daily Headlines (Frontend) ===
 function display_daily_headlines() {
     ob_start();
