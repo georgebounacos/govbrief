@@ -6,6 +6,7 @@
 // Get date from query parameter or default to today
 $selected_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 $date_obj = DateTime::createFromFormat('Y-m-d', $selected_date);
+$date_obj->modify('+1 day');
 $display_date = $date_obj->format('F j, Y');
 
 get_header();
