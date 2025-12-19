@@ -247,6 +247,26 @@ get_header();
             line-height: 1.3;
         }
         
+        /* Source attribution */
+        .hero-source {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .hero-card-export .hero-source {
+            margin-top: 60px;
+        }
+        
+        .hero-source-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dcat-gray);
+        }
+        
+        .hero-card-export .hero-source-text {
+            font-size: 42px;
+        }
+        
         /* Footer - Powered by GovBrief */
         .hero-footer {
             text-align: center;
@@ -400,6 +420,7 @@ get_header();
             }
             
             $callout = get_field('story_callout');
+            $source = get_field('headline_source');
         ?>
         
         <div class="hero-card-wrapper">
@@ -435,6 +456,12 @@ get_header();
                     <?php if ($callout) : ?>
                     <div class="hero-callout">
                         <div class="hero-callout-text"><?php echo esc_html($callout); ?></div>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($source) : ?>
+                    <div class="hero-source">
+                        <div class="hero-source-text">Source: <?php echo esc_html($source); ?></div>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -473,6 +500,12 @@ get_header();
                     <?php if ($callout) : ?>
                     <div class="hero-callout">
                         <div class="hero-callout-text"><?php echo esc_html($callout); ?></div>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($source) : ?>
+                    <div class="hero-source">
+                        <div class="hero-source-text">Source: <?php echo esc_html($source); ?></div>
                     </div>
                     <?php endif; ?>
                 </div>
