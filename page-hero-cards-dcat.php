@@ -142,6 +142,9 @@ get_header();
             width: 1080px;
             height: 1920px;
             padding: 120px 90px;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: visible;
         }
         
         /* DCAT Header */
