@@ -376,7 +376,7 @@ if ($daily_post_query->have_posts()) {
     <!-- Block 1: Intensity + Trending + Quote -->
     <div id="metrics-block-1" style="background: transparent; padding: 0; width: 600px;">
         <div style="margin-bottom: 20px;">
-            <?php echo do_shortcode('[intensity-score post_id="' . $found_post_id . '"]'); ?>
+            <?php echo do_shortcode('[intensity-weather post_id="' . $found_post_id . '"]'); ?>
         </div>
         <div style="margin-bottom: 20px;">
             <?php echo do_shortcode('[trending_topics_box post_id="' . $found_post_id . '"]'); ?>
