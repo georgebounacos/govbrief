@@ -1923,15 +1923,15 @@ function govbrief_calculate_weighted_intensity($target_date) {
     $avg_severity = $volume > 0 ? round($weighted_total / $volume, 2) : 0;
 
     // Baseline calculation (weighted)
-    // Old baseline: weekday 18.5 headlines, weekend 12.2 headlines
-    // New baseline assumes average severity of 1.2 (mostly Level 1 with occasional Level 2)
-    // Weekday weighted baseline: 18.5 * 1.2 = 22.2
-    // Weekend weighted baseline: 12.2 * 1.2 = 14.6
+    // Normal day assumes: ~18.5 weekday headlines, ~12.2 weekend headlines
+    // Average severity of 1.35 (mostly Level 1s, a few Level 2s, rare Level 3s)
+    // Weekday weighted baseline: 18.5 * 1.35 = 25
+    // Weekend weighted baseline: 12.2 * 1.35 = 16.5
     
     $day_of_week = date('l', strtotime($target_date));
     $is_weekend_adjusted = in_array($day_of_week, ['Saturday', 'Sunday', 'Monday']);
     
-    $weighted_baseline = $is_weekend_adjusted ? 12.2 : 18.5;
+    $weighted_baseline = $is_weekend_adjusted ? 16.5 : 25;
     
     $score = $weighted_baseline > 0 ? round(($weighted_total / $weighted_baseline) * 100) : 100;
 
@@ -1954,12 +1954,35 @@ function govbrief_volume_label($count) {
     return 'Extreme';
 }
 
+// === Volume Color ===
+function govbrief_volume_color($count) {
+    if ($count < 13) return ['bg' => '#fef3c7', 'text' => '#92400e']; // yellow - unusually quiet
+    if ($count <= 20) return ['bg' => '#d1fae5', 'text' => '#065f46']; // green - normal
+    if ($count <= 25) return ['bg' => '#ffedd5', 'text' => '#9a3412']; // orange - high
+    return ['bg' => '#fee2e2', 'text' => '#991b1b']; // red - extreme
+}
+
 // === Severity Label ===
 function govbrief_severity_label($avg) {
     if ($avg < 1.5) return 'Low';
     if ($avg < 2.5) return 'Moderate';
     if ($avg < 4.0) return 'High';
     return 'Critical';
+}
+
+// === Severity Color ===
+function govbrief_severity_color($avg) {
+    if ($avg < 1.5) return ['bg' => '#d1fae5', 'text' => '#065f46']; // green - low
+    if ($avg < 2.5) return ['bg' => '#fef3c7', 'text' => '#92400e']; // yellow - moderate
+    if ($avg < 4.0) return ['bg' => '#ffedd5', 'text' => '#9a3412']; // orange - high
+    return ['bg' => '#fee2e2', 'text' => '#991b1b']; // red - critical
+}
+
+// === Defining Moments Color ===
+function govbrief_dm_color($count) {
+    if ($count == 0) return ['bg' => '#d1fae5', 'text' => '#065f46']; // green - none
+    if ($count <= 2) return ['bg' => '#fef3c7', 'text' => '#92400e']; // yellow - 1-2
+    return ['bg' => '#fee2e2', 'text' => '#991b1b']; // red - 3+
 }
 
 // === Weather Report Shortcode ===
@@ -2031,19 +2054,23 @@ function govbrief_weather_report_shortcode($atts = []) {
     // Status label
     $out .= '<div style="margin-bottom:14px;"><span style="font-size:1.05rem;font-weight:500;color:' . $emoji_color . ';">' . $label . '</span></div>';
 
-    // Weather components
-    $out .= '<div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px;font-size:0.95rem;">';
+    // Weather components with colored pills
+    $vol_color = govbrief_volume_color($data['volume']);
+    $sev_color = govbrief_severity_color($data['avg_severity']);
+    $dm_color = govbrief_dm_color($data['defining_moments']);
     
-    $out .= '<div style="background:#e8f4f8;padding:8px 12px;border-radius:6px;">';
-    $out .= '<strong>Volume:</strong> ' . govbrief_volume_label($data['volume']) . ' (' . $data['volume'] . ' stories)';
+    $out .= '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;font-size:0.95rem;">';
+    
+    $out .= '<div style="background:' . $vol_color['bg'] . ';color:' . $vol_color['text'] . ';padding:8px 12px;border-radius:6px;font-weight:600;">';
+    $out .= 'Volume: ' . govbrief_volume_label($data['volume']) . ' (' . $data['volume'] . ')';
     $out .= '</div>';
     
-    $out .= '<div style="background:#e8f4f8;padding:8px 12px;border-radius:6px;">';
-    $out .= '<strong>Severity:</strong> ' . govbrief_severity_label($data['avg_severity']) . ' (avg ' . $data['avg_severity'] . ')';
+    $out .= '<div style="background:' . $sev_color['bg'] . ';color:' . $sev_color['text'] . ';padding:8px 12px;border-radius:6px;font-weight:600;">';
+    $out .= 'Severity: ' . govbrief_severity_label($data['avg_severity']) . ' (' . $data['avg_severity'] . ')';
     $out .= '</div>';
     
-    $out .= '<div style="background:#e8f4f8;padding:8px 12px;border-radius:6px;">';
-    $out .= '<strong>Defining Moments:</strong> ' . $data['defining_moments'];
+    $out .= '<div style="background:' . $dm_color['bg'] . ';color:' . $dm_color['text'] . ';padding:8px 12px;border-radius:6px;font-weight:600;">';
+    $out .= 'Defining Moments: ' . $data['defining_moments'];
     $out .= '</div>';
     
     $out .= '</div>';
