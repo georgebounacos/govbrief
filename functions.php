@@ -2012,23 +2012,23 @@ function govbrief_weather_report_shortcode($atts = []) {
     // Emoji and color based on score
     if ($score < 85) {
         $emoji = '🟢';
-        $label = 'Low activity. Things are quieter than usual.';
+        $label = 'Quiet day. Below-average activity.';
         $emoji_color = '#219653';
     } elseif ($score < 110) {
         $emoji = '🟡';
-        $label = 'Normal range. Baseline political energy.';
+        $label = 'Normal range. Typical news flow.';
         $emoji_color = '#b49f00';
     } elseif ($score < 130) {
         $emoji = '🟠';
-        $label = 'Heated day. Volume above normal.';
+        $label = 'Elevated. Busier or more significant than usual.';
         $emoji_color = '#f2994a';
     } elseif ($score < 150) {
         $emoji = '🔴';
-        $label = 'High intensity. Big news cycle.';
+        $label = 'High intensity. Major news day.';
         $emoji_color = '#eb5757';
     } else {
         $emoji = '🚨';
-        $label = 'Extreme volume. Major political developments.';
+        $label = 'Extreme. History in the making.';
         $emoji_color = '#eb5757';
     }
 
