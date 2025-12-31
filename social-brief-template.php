@@ -272,7 +272,7 @@ $category_colors = [
             background: #333;
             color: white;
             padding: 8px 15px;
-            margin: 20px -15px 12px -15px;
+            margin: 20px -30px 12px -30px;
             font-weight: bold;
             text-transform: uppercase;
             font-size: 13px;
@@ -299,9 +299,9 @@ $category_colors = [
         /* Content area for image export */
         #export-content {
             background: white;
-            padding: 20px;
+            padding: 30px;
             padding-bottom: 80px;
-            max-width: 600px;
+            width: 550px;
             margin: 0 auto;
         }
         
@@ -336,6 +336,81 @@ $category_colors = [
     </div>
 </div>
 
+<?php
+// Query for the daily post by calendar_date to render shortcodes
+$daily_post_query = new WP_Query(array(
+    'post_type' => 'post',
+    'posts_per_page' => 1,
+    'post_status' => 'publish',
+    'meta_query' => array(
+        array(
+            'key' => 'calendar_date',
+            'value' => $selected_date,
+            'compare' => '=',
+            'type' => 'DATE'
+        )
+    ),
+    'orderby' => 'date',
+    'order' => 'DESC'
+));
+
+$daily_post_found = false;
+$found_post_id = null;
+$found_post_title = '';
+
+if ($daily_post_query->have_posts()) {
+    $daily_post_found = true;
+    $queried_post = $daily_post_query->posts[0];
+    $found_post_id = $queried_post->ID;
+    $found_post_title = $queried_post->post_title;
+}
+?>
+
+<?php if ($daily_post_found): ?>
+<!-- Substack Metrics Section -->
+<div class="links-section" style="margin-bottom: 30px;">
+    <h2>For Substack Email - Metrics Images</h2>
+    <p>Download images to paste into Substack. The gaps between boxes will be transparent and blend with your email background.</p>
+    <p style="font-size: 13px; color: #666;">Using post: <strong><?php echo $found_post_title; ?></strong> (ID: <?php echo $found_post_id; ?>)</p>
+    
+    <!-- Block 1: Intensity + Trending + Quote -->
+    <div id="metrics-block-1" style="background: transparent; padding: 0; width: 600px;">
+        <div style="margin-bottom: 20px;">
+            <?php echo do_shortcode('[intensity-score post_id="' . $found_post_id . '"]'); ?>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <?php echo do_shortcode('[trending_topics_box post_id="' . $found_post_id . '"]'); ?>
+        </div>
+        <div>
+            <?php echo do_shortcode('[govbrief_quote post_id="' . $found_post_id . '"]'); ?>
+        </div>
+    </div>
+    
+    <button class="copy-button" onclick="downloadMetricsBlock1()">📥 Download Block 1 (Metrics)</button>
+    <p style="font-size: 13px; color: #666; margin-top: 10px;">Intensity Score + Trending Topics + Quote</p>
+    
+    <div style="border-top: 1px solid #ddd; margin: 30px 0;"></div>
+    
+    <!-- Block 2: Most Read -->
+    <div id="metrics-block-2" style="background: transparent; padding: 0; width: 600px;">
+        <?php echo do_shortcode('[govbrief_most_read post_id="' . $found_post_id . '"]'); ?>
+    </div>
+    
+    <button class="copy-button" onclick="downloadMetricsBlock2()">📥 Download Block 2 (Most Read)</button>
+    <p style="font-size: 13px; color: #666; margin-top: 10px;">Yesterday's Most Read (copy the link manually from the button above)</p>
+</div>
+
+<?php 
+    wp_reset_postdata();
+endif; 
+?>
+
+<?php if (!$daily_post_found): ?>
+<div class="links-section" style="margin-bottom: 30px; background: #fff3cd; border: 1px solid #ffc107;">
+    <p style="color: #856404; margin: 0;"><strong>⚠️ No daily post found for <?php echo $title_date; ?></strong></p>
+    <p style="color: #856404; margin: 10px 0 0 0; font-size: 14px;">Make sure you have a published post with the calendar_date field set to "<?php echo $title_date; ?>"</p>
+</div>
+<?php endif; ?>
 
 <!-- Start export content wrapper -->
 <div id="export-content">
@@ -700,41 +775,36 @@ function downloadAsImage() {
     
     // Show loading message
     const loadingMsg = document.createElement('div');
-    loadingMsg.innerHTML = 'Generating image... please wait...';
+    loadingMsg.innerHTML = 'Generating images... please wait...';
     loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; z-index: 9999; font-size: 18px;';
     document.body.appendChild(loadingMsg);
     
+    const dateStr = '<?php echo $display_date; ?>';
+    
     // Use html2canvas to capture the content
     html2canvas(exportContent, {
-        scale: 2, // Higher quality
+        scale: 2,
         backgroundColor: '#ffffff',
         logging: false,
-        useCORS: true, // CRITICAL: Allow cross-origin images like the logo
-        allowTaint: true, // Allow cross-origin images to taint the canvas
+        useCORS: true,
+        allowTaint: true,
         width: exportContent.scrollWidth,
         height: exportContent.scrollHeight,
         windowWidth: exportContent.scrollWidth,
         windowHeight: exportContent.scrollHeight
     }).then(canvas => {
-        // Convert canvas to blob
+        // Download clean image
         canvas.toBlob(function(blob) {
-            // Create download link
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            const dateStr = '<?php echo $display_date; ?>';
             link.download = dateStr + '-govbrief-social.png';
             link.href = url;
             link.click();
-            
-            // Cleanup
             URL.revokeObjectURL(url);
-            document.body.removeChild(loadingMsg);
             
-            // Restore hidden elements
-            if(dateSelector) dateSelector.style.display = '';
-            linksSection.forEach(section => section.style.display = '');
-            
-            alert('Image downloaded! You can now crop this long vertical strip however you need for your social media posts.');
+            // Now create reference image with pixel markers
+            loadingMsg.innerHTML = 'Creating reference image...';
+            createReferenceImage(canvas, dateStr);
         }, 'image/png');
     }).catch(error => {
         console.error('Error generating image:', error);
@@ -744,6 +814,191 @@ function downloadAsImage() {
         // Restore hidden elements
         if(dateSelector) dateSelector.style.display = '';
         linksSection.forEach(section => section.style.display = '');
+    });
+}
+
+function createReferenceImage(originalCanvas, dateStr) {
+    const loadingMsg = document.querySelector('div[style*="Generating"]');
+    
+    // Create new canvas for reference image
+    const refCanvas = document.createElement('canvas');
+    refCanvas.width = originalCanvas.width + 200; // Add space for ruler on left
+    refCanvas.height = originalCanvas.height;
+    const ctx = refCanvas.getContext('2d');
+    
+    // Draw original image offset to make room for ruler
+    ctx.drawImage(originalCanvas, 200, 0);
+    
+    // Draw ruler on the left
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, 200, refCanvas.height);
+    
+    // Draw pixel markers - using actual file pixel coordinates
+    ctx.font = 'bold 32px Arial';
+    ctx.textAlign = 'right';
+    
+    // Major marks every 500px
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3;
+    for(let y = 0; y < refCanvas.height; y += 500) {
+        ctx.beginPath();
+        ctx.moveTo(150, y);
+        ctx.lineTo(200, y);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#000';
+        ctx.fillText(y + 'px', 140, y + 12);
+    }
+    
+    // Minor marks every 100px
+    ctx.strokeStyle = '#666';
+    ctx.lineWidth = 2;
+    ctx.font = '20px Arial';
+    for(let y = 100; y < refCanvas.height; y += 100) {
+        if(y % 500 !== 0) { // Skip major marks
+            ctx.beginPath();
+            ctx.moveTo(170, y);
+            ctx.lineTo(200, y);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#666';
+            ctx.fillText(y, 160, y + 8);
+        }
+    }
+    
+    // Highlight sweet spot zones (1400-1800, 2900-3300, etc) in actual file pixels
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.15)';
+    for(let baseY = 1400; baseY < refCanvas.height; baseY += 1600) {
+        ctx.fillRect(0, baseY, 200, 400);
+    }
+    
+    // Download reference image
+    refCanvas.toBlob(function(blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = dateStr + '-govbrief-REFERENCE.png';
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+        
+        // Cleanup
+        document.body.removeChild(loadingMsg);
+        
+        // Restore hidden elements
+        const dateSelector = document.querySelector('.date-selector');
+        const linksSection = document.querySelectorAll('.links-section');
+        if(dateSelector) dateSelector.style.display = '';
+        linksSection.forEach(section => section.style.display = '');
+        
+        alert('Both images downloaded!\n\n1. Clean image for posting\n2. Reference image with pixel markers\n\nLook at the reference to decide split points, then edit splits.txt');
+    }, 'image/png');
+}
+
+// Download metrics block 1 (Intensity + Trending + Quote) with transparent gaps
+function downloadMetricsBlock1() {
+    const block = document.getElementById('metrics-block-1');
+    const dateStr = '<?php echo $display_date; ?>';
+    
+    // Save original width and temporarily expand for capture
+    const originalWidth = block.style.width;
+    block.style.width = '800px';
+    
+    // Force reflow/repaint so browser recalculates layout
+    void block.offsetHeight;
+    
+    // Show loading message
+    const loadingMsg = document.createElement('div');
+    loadingMsg.innerHTML = 'Generating Block 1 image...';
+    loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; z-index: 9999; font-size: 18px;';
+    document.body.appendChild(loadingMsg);
+    
+    html2canvas(block, {
+        scale: 1.5,
+        backgroundColor: null, // Transparent background!
+        logging: false,
+        useCORS: true,
+        allowTaint: true
+    }).then(canvas => {
+        // Restore original width immediately after capture
+        block.style.width = originalWidth;
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = dateStr + '-substack-block1-metrics.png';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            document.body.removeChild(loadingMsg);
+            alert('Block 1 downloaded! (Intensity + Trending + Quote)\n\nThe gaps are transparent and will blend with your Substack background.');
+        }, 'image/png');
+    }).catch(error => {
+        console.error('Error generating Block 1:', error);
+        document.body.removeChild(loadingMsg);
+        alert('Error generating image. Please try again.');
+    });
+}
+
+// Download metrics block 2 (Most Read) with transparent background
+function downloadMetricsBlock2() {
+    const block = document.getElementById('metrics-block-2');
+    
+    if (!block) {
+        alert('Error: Could not find Block 2 element');
+        return;
+    }
+    
+    const dateStr = '<?php echo $display_date; ?>';
+    
+    // Save original width and temporarily expand for capture
+    const originalWidth = block.style.width;
+    block.style.width = '800px';
+    
+    // Force reflow/repaint so browser recalculates layout
+    void block.offsetHeight;
+    
+    // Show loading message
+    const loadingMsg = document.createElement('div');
+    loadingMsg.innerHTML = 'Generating Block 2 image...';
+    loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; z-index: 9999; font-size: 18px;';
+    document.body.appendChild(loadingMsg);
+    
+    html2canvas(block, {
+        scale: 1.5,
+        backgroundColor: null,
+        logging: true,
+        useCORS: true,
+        allowTaint: true
+    }).then(canvas => {
+        // Restore original width immediately after capture
+        block.style.width = originalWidth;
+        if (!canvas) {
+            document.body.removeChild(loadingMsg);
+            alert('Error: Canvas creation failed. Check browser console for details.');
+            return;
+        }
+        
+        canvas.toBlob(function(blob) {
+            if (!blob) {
+                document.body.removeChild(loadingMsg);
+                alert('Error: Could not create image blob. Check browser console for details.');
+                return;
+            }
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = dateStr + '-substack-block2-mostread.png';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            document.body.removeChild(loadingMsg);
+            alert('Block 2 downloaded! (Most Read)\n\nRemember to copy the link URL manually from the button in the box above.');
+        }, 'image/png');
+    }).catch(error => {
+        console.error('Error generating Block 2:', error);
+        document.body.removeChild(loadingMsg);
+        alert('Error generating image: ' + error.message + '\n\nCheck browser console for details.');
     });
 }
 </script>

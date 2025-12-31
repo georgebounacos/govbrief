@@ -1,5 +1,6 @@
 <?php
-
+// Test deployment - 2025-11-15
+// This comment tests the GitHub Actions → Pagely SFTP pipeline
 
 // === Enqueue Parent Styles ===
 function generatepress_child_enqueue_styles() {
@@ -43,36 +44,6 @@ function display_daily_headlines() {
     return ob_get_clean();
 }
 add_shortcode('daily_headlines', 'display_daily_headlines');
-
-// === Enqueue Odometer Script & Styles ===
-function enqueue_odometer_assets() {
-    wp_enqueue_style('odometer-style', 'https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-default.min.css');
-    wp_enqueue_script('odometer-script', 'https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js', array(), null, true);
-}
-add_action('wp_enqueue_scripts', 'enqueue_odometer_assets');
-
-// === Shortcode: Animated Odometer Counter for Headlines ===
-function govbrief_animated_headline_count() {
-    $total = wp_count_posts('daily-headlines')->publish;
-
-    ob_start(); ?>
-    <div class="headline-odometer-wrapper" style="text-align: right;">
-        <div id="headline-odometer" class="odometer" data-count="<?php echo esc_attr($total); ?>" style="font-size: 28px; font-family: 'Roboto Mono', monospace; color: #F58220;"></div>
-        <small style="color: #999;">Headlines Total</small>
-    </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const odometerEl = document.getElementById('headline-odometer');
-            if (odometerEl) {
-                const count = odometerEl.getAttribute('data-count');
-                odometerEl.innerHTML = count;
-            }
-        });
-    </script>
-    <?php
-    return ob_get_clean();
-}
-add_shortcode('animated_headline_count', 'govbrief_animated_headline_count');
 
 
 // === Shortcode: Display Daily Headlines (Admin Only Text) ===
@@ -269,11 +240,17 @@ function govbrief_get_trending_topics($target_date = null) {
 }
 
 // === Intensity Score Display Function (Styled, with Emoji History) ===
-function govbrief_intensity_display() {
+function govbrief_intensity_display($atts = []) {
     global $post;
+    
+    // Support post_id attribute for use in templates
+    $atts = shortcode_atts(['post_id' => null], $atts);
+    $post_id = $atts['post_id'] ? intval($atts['post_id']) : ($post ? $post->ID : null);
+    
+    if (!$post_id) return '';
 
     // Pull adjusted score (entered by you)
-    $score = get_field('intensity_score', $post->ID);
+    $score = get_field('intensity_score', $post_id);
     $score = is_numeric($score) ? intval($score) : 100;
 
     // Assign emoji & label
@@ -303,27 +280,49 @@ function govbrief_intensity_display() {
         $emoji_color = '#eb5757';
     }
 
-    // Query for last 5 published posts (including current)
-    $recent_query = new WP_Query(array(
-        'post_type'      => 'post',
-        'posts_per_page' => 5,
-        'orderby'        => 'date',
-        'order'          => 'DESC',
-        'post_status'    => 'publish',
-        'fields'         => 'ids'
-    ));
-
-    $recent_scores = array();
-    if ($recent_query->have_posts()) {
-        foreach ($recent_query->posts as $recent_id) {
-            $recent_score = get_field('intensity_score', $recent_id);
-            $recent_scores[] = is_numeric($recent_score) ? intval($recent_score) : 100;
-        }
+    // Get calendar_date from this post and find previous 5 days
+    $calendar_date = get_field('calendar_date', $post_id);
+    if (!$calendar_date) {
+        $calendar_date = get_the_date('Y-m-d', $post_id);
     }
-    wp_reset_postdata();
+    
+    // Handle ACF date format (might be Ymd or Y-m-d)
+    if (strlen($calendar_date) === 8 && is_numeric($calendar_date)) {
+        $calendar_date = substr($calendar_date, 0, 4) . '-' . substr($calendar_date, 4, 2) . '-' . substr($calendar_date, 6, 2);
+    }
+    
+    $cal_date_obj = new DateTime($calendar_date);
+    $recent_scores = array();
+    
+    for ($i = 1; $i <= 5; $i++) {
+        $prev_date = clone $cal_date_obj;
+        $prev_date->modify("-{$i} days");
+        $target_date = $prev_date->format('Ymd');
+        
+        $prev_query = new WP_Query(array(
+            'post_type'      => 'post',
+            'posts_per_page' => 1,
+            'post_status'    => 'publish',
+            'fields'         => 'ids',
+            'meta_query'     => array(array(
+                'key'     => 'calendar_date',
+                'value'   => $target_date,
+                'compare' => '=',
+            )),
+        ));
+        
+        if ($prev_query->have_posts()) {
+            $prev_id = $prev_query->posts[0];
+            $prev_score = get_field('intensity_score', $prev_id);
+            $recent_scores[] = is_numeric($prev_score) ? intval($prev_score) : 100;
+        } else {
+            $recent_scores[] = 100; // Default if no post found
+        }
+        wp_reset_postdata();
+    }
 
     // Build output
-    $out = '<div class="gb-intensity-container" style="background:#f8f9fa;border:4px solid #007cba;padding:16px;margin-bottom:24px;border-radius:8px;width:800px;">';
+    $out = '<div class="gb-intensity-container" style="background:#f8f9fa;border:4px solid #007cba;padding:16px;margin-bottom:24px;border-radius:8px;width:100%;max-width:800px;box-sizing:border-box;">';
 
     $out .= '<div style="font-weight:bold;font-size:1.25em;color:#007cba;margin-bottom:12px;border-bottom:2px solid #007cba;padding-bottom:8px;display:flex;align-items:center;gap:10px;">';
     $out .= '<span style="font-size:1.1em;">' . $emoji . '</span> GovBrief Intensity Score <span style="font-weight:700;color:#24292f;">' . $score . '</span>';
@@ -347,7 +346,7 @@ function govbrief_intensity_display() {
         $out .= '</div>';
     }
 
-    $out .= '<div style="margin-top:4px;font-size:0.97rem;color:#444;line-height:1.5;">';
+    $out .= '<div style="margin-top:4px;font-size:0.97rem;color:#444;line-height:1.5;word-wrap:break-word;overflow-wrap:break-word;">';
     $out .= 'This is an indexed score based on news activity. <strong>100</strong> = our permanent historical baseline that is adjusted for weekdays and weekend days. Scores above 100 mean a busier-than-normal news day.';
     $out .= '</div>';
 
@@ -360,36 +359,40 @@ add_shortcode('intensity-score', 'govbrief_intensity_display');
 
 
 // === Trending Topics Display Box ===
-function govbrief_trending_topics_box() {
+function govbrief_trending_topics_box($atts = []) {
     global $post;
     
-    // Try to get the calendar date from the current post context
+    // Support post_id attribute for use in templates
+    $atts = shortcode_atts(['post_id' => null], $atts);
+    $post_id = $atts['post_id'] ? intval($atts['post_id']) : ($post ? $post->ID : null);
+    
+    if (!$post_id) return '';
+    
+    // Try to get the calendar date from the specified post
     $target_date = null;
-    if ($post && $post->ID) {
-        $hd_raw = get_field('calendar_date', $post->ID) ?: get_the_date('Y-m-d', $post->ID);
-        
-        $dt = DateTime::createFromFormat('F j, Y', $hd_raw);
-        if (!$dt) {
-            $dt = DateTime::createFromFormat('Y-m-d', $hd_raw);
-        }
-        if (!$dt) {
-            $dt = new DateTime();
-        }
-        
-        $target_date = $dt->format('Y-m-d');
+    $hd_raw = get_field('calendar_date', $post_id) ?: get_the_date('Y-m-d', $post_id);
+    
+    $dt = DateTime::createFromFormat('F j, Y', $hd_raw);
+    if (!$dt) {
+        $dt = DateTime::createFromFormat('Y-m-d', $hd_raw);
     }
+    if (!$dt) {
+        $dt = new DateTime();
+    }
+    
+    $target_date = $dt->format('Y-m-d');
     
     $trending = govbrief_get_trending_topics($target_date);
     $cat_names = $trending['categories'];
     $tag_names = $trending['tags'];
     
-    $output = '<div class="gb-trending-container" style="background:#f8f9fa;border:4px solid #007cba;padding:16px;margin-bottom:24px;border-radius:8px;width:800px;">';
+    $output = '<div class="gb-trending-container" style="background:#f8f9fa;border:4px solid #007cba;padding:16px;margin-bottom:24px;border-radius:8px;width:100%;max-width:800px;box-sizing:border-box;">';
     
     $output .= '<div class="trending-header" style="font-weight:bold;font-size:1.25em;color:#007cba;margin-bottom:12px;border-bottom:2px solid #007cba;padding-bottom:8px;">';
     $output .= '<span style="font-size:1.1em;">📈</span> What\'s Trending This Week';
     $output .= '</div>';
     
-    $output .= '<div class="trending-explanation" style="font-size:0.9em;color:#666;margin-bottom:16px;line-height:1.4;">';
+    $output .= '<div class="trending-explanation" style="font-size:0.9em;color:#666;margin-bottom:16px;line-height:1.4;word-wrap:break-word;overflow-wrap:break-word;">';
     $output .= 'Based on analysis of the past 7 days of headlines, these are the most frequently covered topics and categories.';
     $output .= '</div>';
     
@@ -491,12 +494,17 @@ add_action('acf/init', function () {
 
 // ========== Frontend: Quote display box (amber stinger) ==========
 if (!function_exists('govbrief_quote_block')) {
-    function govbrief_quote_block() {
+    function govbrief_quote_block($atts = []) {
         global $post;
-        if (!$post || !isset($post->ID)) return '';
+        
+        // Support post_id attribute for use in templates
+        $atts = shortcode_atts(['post_id' => null], $atts);
+        $post_id = $atts['post_id'] ? intval($atts['post_id']) : ($post ? $post->ID : null);
+        
+        if (!$post_id) return '';
 
-        $quote = function_exists('get_field') ? get_field('gbt_quote_text', $post->ID) : '';
-        $cite  = function_exists('get_field') ? get_field('gbt_quote_citation', $post->ID) : '';
+        $quote = function_exists('get_field') ? get_field('gbt_quote_text', $post_id) : '';
+        $cite  = function_exists('get_field') ? get_field('gbt_quote_citation', $post_id) : '';
 
         if (($quote === '' || $quote === null) && ($cite === '' || $cite === null)) return '';
 
@@ -530,7 +538,7 @@ if (!function_exists('govbrief_quote_block')) {
 
 add_action('init', function () {
     if (!shortcode_exists('govbrief_quote')) {
-        add_shortcode('govbrief_quote', function($atts){ return govbrief_quote_block(); });
+        add_shortcode('govbrief_quote', function($atts){ return govbrief_quote_block($atts); });
     }
 });
 
@@ -583,13 +591,18 @@ add_action('acf/init', function () {
 
 // ========== Frontend: Yesterday's Most Read display ==========
 if (!function_exists('govbrief_most_read_from_acf')) {
-    function govbrief_most_read_from_acf() {
+    function govbrief_most_read_from_acf($atts = []) {
         global $post;
-        if (!$post || !isset($post->ID)) return '';
+        
+        // Support post_id attribute for use in templates
+        $atts = shortcode_atts(['post_id' => null], $atts);
+        $post_id = $atts['post_id'] ? intval($atts['post_id']) : ($post ? $post->ID : null);
+        
+        if (!$post_id) return '';
 
-        $blurb  = function_exists('get_field') ? get_field('gbt_mr_blurb', $post->ID) : '';
-        $url    = function_exists('get_field') ? get_field('gbt_mr_url',   $post->ID) : '';
-        $button = function_exists('get_field') ? get_field('gbt_mr_button',$post->ID) : 'Catch Up';
+        $blurb  = function_exists('get_field') ? get_field('gbt_mr_blurb', $post_id) : '';
+        $url    = function_exists('get_field') ? get_field('gbt_mr_url',   $post_id) : '';
+        $button = function_exists('get_field') ? get_field('gbt_mr_button',$post_id) : 'Catch Up';
 
         if (trim((string)$blurb) === '' && trim((string)$url) === '') return '';
 
@@ -638,7 +651,7 @@ if (!function_exists('govbrief_most_read_from_acf')) {
 
 add_action('init', function () {
     if (!shortcode_exists('govbrief_most_read')) {
-        add_shortcode('govbrief_most_read', function($atts){ return govbrief_most_read_from_acf(); });
+        add_shortcode('govbrief_most_read', function($atts){ return govbrief_most_read_from_acf($atts); });
     }
 });
 
@@ -963,7 +976,7 @@ function govbrief_cards_shortcode($atts) {
         'Extremism', 'Dissent', 'Disaster Relief', 'Foreign Relations', 'War',
         'Health', 'Human Rights', 'Environment', 'Science', 'DEI',
         'Voting Rights', 'Censorship', 'Economy', 'Military', 'Intelligence',
-        'Courts', 'Criminal Justice', 'Social Security', 'Immigration', 'Education',
+        'Justice Dept', 'Courts', 'Criminal Justice', 'Social Security', 'Immigration', 'Education',
         'Oversight', 'Congress', 'Federal Personnel', 'Transportation', 'Data',
         'Propaganda', 'Religion', 'Media', 'Arts', 'Grift', 'Protest', 'Fighting Back'
     ];
@@ -974,7 +987,7 @@ function govbrief_cards_shortcode($atts) {
         'Human Rights' => '#db2777', 'Environment' => '#059669', 'Science' => '#0891b2',
         'DEI' => '#7c3aed', 'Voting Rights' => '#4f46e5', 'Censorship' => '#dc2626',
         'Economy' => '#16a34a', 'Military' => '#475569', 'Intelligence' => '#1e293b',
-        'Courts' => '#7c3aed', 'Criminal Justice' => '#be123c', 'Social Security' => '#0d9488',
+        'Justice Dept' => '#4338ca', 'Courts' => '#7c3aed', 'Criminal Justice' => '#be123c', 'Social Security' => '#0d9488',
         'Immigration' => '#ea580c', 'Education' => '#2563eb', 'Oversight' => '#64748b',
         'Congress' => '#1e40af', 'Federal Personnel' => '#6366f1', 'Transportation' => '#0891b2',
         'Data' => '#6b7280', 'Propaganda' => '#dc2626', 'Religion' => '#7c3aed',
@@ -1193,7 +1206,7 @@ function govbrief_homepage_cards_shortcode($atts) {
         'Human Rights' => '#db2777', 'Environment' => '#059669', 'Science' => '#0891b2',
         'DEI' => '#7c3aed', 'Voting Rights' => '#4f46e5', 'Censorship' => '#dc2626',
         'Economy' => '#16a34a', 'Military' => '#475569', 'Intelligence' => '#1e293b',
-        'Courts' => '#7c3aed', 'Criminal Justice' => '#be123c', 'Social Security' => '#0d9488',
+        'Justice Dept' => '#4338ca', 'Courts' => '#7c3aed', 'Criminal Justice' => '#be123c', 'Social Security' => '#0d9488',
         'Immigration' => '#ea580c', 'Education' => '#2563eb', 'Oversight' => '#64748b',
         'Congress' => '#1e40af', 'Federal Personnel' => '#6366f1', 'Transportation' => '#0891b2',
         'Data' => '#6b7280', 'Propaganda' => '#dc2626', 'Religion' => '#7c3aed',
@@ -1234,6 +1247,43 @@ function govbrief_homepage_cards_shortcode($atts) {
         return '<p>No recent headlines found.</p>';
     }
     
+    // Get the date from the first headline to count ALL cards from that day
+    $most_recent_date = get_field('headline_date', $national_headlines[0]->ID);
+    $total_count_for_day = 0;
+    
+    if($most_recent_date) {
+        // Query for ALL headlines from that specific date
+        $all_day_headlines = get_posts([
+            'post_type' => 'daily-headlines',
+            'posts_per_page' => -1, // Get all
+            'meta_query' => [[
+                'key' => 'headline_date',
+                'value' => $most_recent_date,
+                'compare' => '=',
+                'type' => 'DATE'
+            ]]
+        ]);
+        
+        // Filter for national edition to get true count
+        foreach($all_day_headlines as $day_headline) {
+            $editions = get_field('include_in_editions', $day_headline->ID);
+            $is_national = false;
+            if(is_array($editions) && in_array('national', $editions)) {
+                $is_national = true;
+            } elseif($editions === 'national') {
+                $is_national = true;
+            }
+            if($is_national) {
+                $total_count_for_day++;
+            }
+        }
+    }
+    
+    // Fallback to displayed count if we couldn't get the day's total
+    if($total_count_for_day == 0) {
+        $total_count_for_day = count($national_headlines);
+    }
+    
 // Find the most recent daily post by calendar_date (ACF field returns Y-m-d format)
     $latest_daily_post = get_posts([
         'post_type' => 'post',
@@ -1254,10 +1304,14 @@ function govbrief_homepage_cards_shortcode($atts) {
     <div class="govbrief-homepage-cards">
         <div class="homepage-cards-grid">
             <?php
+            $counter = 1;
+            
             foreach($national_headlines as $headline) {
                 $title = $headline->post_title;
                 $link = get_field('headline_link', $headline->ID);
                 $callout = get_field('story_callout', $headline->ID);
+                $source = get_field('headline_source', $headline->ID);
+                $headline_date = get_field('headline_date', $headline->ID);
                 
                 $category = 'News';
                 $color = '#6b7280';
@@ -1282,16 +1336,26 @@ function govbrief_homepage_cards_shortcode($atts) {
                 ?>
                 <a href="<?php echo esc_url($link); ?>" class="mini-card" target="_blank" rel="noopener">
                     <div class="mini-category-bar" style="background: <?php echo $color; ?>;">
-                        <?php echo esc_html($category); ?>
+                        <span><?php echo esc_html($category); ?></span>
+                        <span class="story-number"><?php echo $counter; ?> of <?php echo $total_count_for_day; ?></span>
                     </div>
                     <div class="mini-card-content">
                         <h3 class="mini-card-title"><?php echo esc_html($title); ?></h3>
                         <?php if($callout): ?>
                             <div class="mini-callout"><?php echo esc_html($callout); ?></div>
                         <?php endif; ?>
+                        
+                        <?php if($source): ?>
+                            <p class="card-source">Source: <?php echo esc_html($source); ?></p>
+                        <?php endif; ?>
+                        
+                        <?php if($headline_date): ?>
+                            <p class="card-date"><?php echo date('F j, Y', strtotime($headline_date)); ?></p>
+                        <?php endif; ?>
                     </div>
                 </a>
                 <?php
+                $counter++;
             }
             ?>
         </div>
@@ -1329,12 +1393,19 @@ function govbrief_homepage_cards_shortcode($atts) {
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .mini-category-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         padding: 8px 12px;
         color: white;
         font-weight: 700;
         text-transform: uppercase;
         font-size: 10px;
         letter-spacing: 0.5px;
+    }
+    .mini-category-bar .story-number {
+        font-size: 9px;
+        opacity: 0.9;
     }
     .mini-card-content { padding: 15px; }
     .mini-card-title {
@@ -1352,6 +1423,17 @@ function govbrief_homepage_cards_shortcode($atts) {
         font-size: 13px;
         font-weight: 600;
         color: #1f2937;
+    }
+    .card-source {
+        color: #6b7280;
+        font-size: 13px;
+        margin: 10px 0 0 0;
+        font-style: italic;
+    }
+    .card-date {
+        color: #9ca3af;
+        font-size: 12px;
+        margin: 5px 0 0 0;
     }
     .homepage-cards-button {
         text-align: center;
@@ -1692,3 +1774,308 @@ add_filter('acf/format_value/type=wysiwyg', function($value){
 
     // Also clear homepage cards cache since it links to latest post
     delete_transient('govbrief_homepage_cards_6');
+
+
+// === GovBrief Cache Clearing Tool ===
+// Usage: Add ?clear_gb_cache=1 to any URL while logged in as admin
+// Example: https://govbrief.today/?clear_gb_cache=1
+add_action('init', function() {
+    if (!isset($_GET['clear_gb_cache']) || $_GET['clear_gb_cache'] !== '1') {
+        return;
+    }
+    
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    
+    global $wpdb;
+    
+    // Delete all govbrief-related transients
+    $deleted = $wpdb->query(
+        "DELETE FROM {$wpdb->options} 
+         WHERE option_name LIKE '_transient_govbrief_%' 
+         OR option_name LIKE '_transient_timeout_govbrief_%'"
+    );
+    
+    // Also clear the homepage cards cache explicitly
+    delete_transient('govbrief_homepage_cards_6');
+    
+    // Admin notice
+    add_action('admin_notices', function() use ($deleted) {
+        echo '<div class="notice notice-success is-dismissible">';
+        echo '<p><strong>GovBrief cache cleared.</strong> ' . intval($deleted) . ' transient entries removed.</p>';
+        echo '</div>';
+    });
+    
+    // Frontend notice for non-admin pages
+    if (!is_admin()) {
+        add_action('wp_footer', function() use ($deleted) {
+            echo '<div style="position:fixed;bottom:20px;right:20px;background:#10b981;color:white;padding:15px 20px;border-radius:8px;font-family:sans-serif;font-weight:600;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.2);">';
+            echo '✓ GovBrief cache cleared (' . intval($deleted) . ' entries)';
+            echo '</div>';
+        });
+    }
+});
+
+
+// ========================================
+// GOVBRIEF INTENSITY SCORE v2: SEVERITY-WEIGHTED
+// Added: December 2025
+// ========================================
+
+// === ACF Field: Severity Level on daily-headlines ===
+add_action('acf/init', function() {
+    if (!function_exists('acf_add_local_field_group')) return;
+
+    acf_add_local_field_group([
+        'key' => 'group_govbrief_severity',
+        'title' => 'Story Severity',
+        'fields' => [
+            [
+                'key' => 'field_govbrief_severity_level',
+                'label' => 'Severity Level',
+                'name' => 'severity_level',
+                'type' => 'radio',
+                'instructions' => 'Level 1: Routine (normal in most administrations). Level 2: New Normal (significant but normalizing). Level 3: Defining Moment (will characterize this administration).',
+                'required' => 0,
+                'choices' => [
+                    1 => 'Level 1: Routine',
+                    2 => 'Level 2: New Normal',
+                    3 => 'Level 3: Defining Moment',
+                ],
+                'default_value' => 1,
+                'layout' => 'horizontal',
+                'return_format' => 'value',
+            ],
+        ],
+        'location' => [
+            [
+                [
+                    'param' => 'post_type',
+                    'operator' => '==',
+                    'value' => 'daily-headlines',
+                ],
+            ],
+        ],
+        'position' => 'normal',
+		'menu_order' => 5,
+        'style' => 'default',
+        'label_placement' => 'top',
+        'active' => true,
+    ]);
+});
+
+// === Severity Weight Map ===
+function govbrief_get_severity_weight($level) {
+    $weights = [
+        1 => 1,  // Routine
+        2 => 3,  // New Normal
+        3 => 5,  // Defining Moment
+    ];
+    return isset($weights[$level]) ? $weights[$level] : 1;
+}
+
+// === Calculate Weighted Intensity for a Date ===
+function govbrief_calculate_weighted_intensity($target_date) {
+    // Query all headlines for this date
+    $headlines = get_posts([
+        'post_type' => 'daily-headlines',
+        'posts_per_page' => 200,
+        'post_status' => 'publish',
+        'meta_query' => [[
+            'key' => 'headline_date',
+            'value' => $target_date,
+            'compare' => '=',
+            'type' => 'DATE'
+        ]]
+    ]);
+
+    if (empty($headlines)) {
+        return [
+            'score' => 0,
+            'volume' => 0,
+            'weighted_total' => 0,
+            'avg_severity' => 0,
+            'defining_moments' => 0,
+            'level_counts' => [1 => 0, 2 => 0, 3 => 0],
+        ];
+    }
+
+    $volume = count($headlines);
+    $weighted_total = 0;
+    $defining_moments = 0;
+    $level_counts = [1 => 0, 2 => 0, 3 => 0];
+
+    foreach ($headlines as $headline) {
+        $level = get_field('severity_level', $headline->ID);
+        $level = $level ? intval($level) : 1; // Default to 1 if not set
+        
+        $weight = govbrief_get_severity_weight($level);
+        $weighted_total += $weight;
+        
+        $level_counts[$level]++;
+        
+        if ($level == 3) {
+            $defining_moments++;
+        }
+    }
+
+    $avg_severity = $volume > 0 ? round($weighted_total / $volume, 2) : 0;
+
+    // Baseline calculation (weighted)
+    // Old baseline: weekday 18.5 headlines, weekend 12.2 headlines
+    // New baseline assumes average severity of 1.2 (mostly Level 1 with occasional Level 2)
+    // Weekday weighted baseline: 18.5 * 1.2 = 22.2
+    // Weekend weighted baseline: 12.2 * 1.2 = 14.6
+    
+    $day_of_week = date('l', strtotime($target_date));
+    $is_weekend_adjusted = in_array($day_of_week, ['Saturday', 'Sunday', 'Monday']);
+    
+    $weighted_baseline = $is_weekend_adjusted ? 12.2 : 18.5;
+    
+    $score = $weighted_baseline > 0 ? round(($weighted_total / $weighted_baseline) * 100) : 100;
+
+    return [
+        'score' => $score,
+        'volume' => $volume,
+        'weighted_total' => $weighted_total,
+        'avg_severity' => $avg_severity,
+        'defining_moments' => $defining_moments,
+        'level_counts' => $level_counts,
+        'is_weekend' => $is_weekend_adjusted,
+    ];
+}
+
+// === Volume Label ===
+function govbrief_volume_label($count) {
+    if ($count < 13) return 'Low';
+    if ($count <= 20) return 'Normal';
+    if ($count <= 25) return 'High';
+    return 'Extreme';
+}
+
+// === Severity Label ===
+function govbrief_severity_label($avg) {
+    if ($avg < 1.5) return 'Low';
+    if ($avg < 2.5) return 'Moderate';
+    if ($avg < 4.0) return 'High';
+    return 'Critical';
+}
+
+// === Weather Report Shortcode ===
+function govbrief_weather_report_shortcode($atts = []) {
+    global $post;
+    
+    $atts = shortcode_atts(['post_id' => null], $atts);
+    $post_id = $atts['post_id'] ? intval($atts['post_id']) : ($post ? $post->ID : null);
+    
+    if (!$post_id) return '';
+
+    // Get the calendar date for this post
+    $calendar_date = get_field('calendar_date', $post_id);
+    if (!$calendar_date) {
+        $calendar_date = get_the_date('Y-m-d', $post_id);
+    }
+    
+    // Handle ACF date format (might be Ymd or Y-m-d)
+    if (strlen($calendar_date) === 8 && is_numeric($calendar_date)) {
+        $calendar_date = substr($calendar_date, 0, 4) . '-' . substr($calendar_date, 4, 2) . '-' . substr($calendar_date, 6, 2);
+    }
+
+    // Calculate today's intensity
+    $data = govbrief_calculate_weighted_intensity($calendar_date);
+    $score = $data['score'];
+
+    // Emoji and color based on score
+    if ($score < 85) {
+        $emoji = '🟢';
+        $label = 'Low activity. Things are quieter than usual.';
+        $emoji_color = '#219653';
+    } elseif ($score < 110) {
+        $emoji = '🟡';
+        $label = 'Normal range. Baseline political energy.';
+        $emoji_color = '#b49f00';
+    } elseif ($score < 130) {
+        $emoji = '🟠';
+        $label = 'Heated day. Volume above normal.';
+        $emoji_color = '#f2994a';
+    } elseif ($score < 150) {
+        $emoji = '🔴';
+        $label = 'High intensity. Big news cycle.';
+        $emoji_color = '#eb5757';
+    } else {
+        $emoji = '🚨';
+        $label = 'Extreme volume. Major political developments.';
+        $emoji_color = '#eb5757';
+    }
+
+    // Get previous 5 days
+    $recent_scores = [];
+    $cal_date_obj = new DateTime($calendar_date);
+    
+    for ($i = 1; $i <= 5; $i++) {
+        $prev_date = clone $cal_date_obj;
+        $prev_date->modify("-{$i} days");
+        $prev_data = govbrief_calculate_weighted_intensity($prev_date->format('Y-m-d'));
+        $recent_scores[] = $prev_data['score'];
+    }
+
+    // Build output
+    $out = '<div class="gb-intensity-container" style="background:#f8f9fa;border:4px solid #007cba;padding:16px;margin-bottom:24px;border-radius:8px;width:100%;max-width:800px;box-sizing:border-box;">';
+
+    // Header with score
+    $out .= '<div style="font-weight:bold;font-size:1.25em;color:#007cba;margin-bottom:12px;border-bottom:2px solid #007cba;padding-bottom:8px;display:flex;align-items:center;gap:10px;">';
+    $out .= '<span style="font-size:1.1em;">' . $emoji . '</span> GovBrief Intensity Score <span style="font-weight:700;color:#24292f;">' . $score . '</span>';
+    $out .= '</div>';
+
+    // Status label
+    $out .= '<div style="margin-bottom:14px;"><span style="font-size:1.05rem;font-weight:500;color:' . $emoji_color . ';">' . $label . '</span></div>';
+
+    // Weather components
+    $out .= '<div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px;font-size:0.95rem;">';
+    
+    $out .= '<div style="background:#e8f4f8;padding:8px 12px;border-radius:6px;">';
+    $out .= '<strong>Volume:</strong> ' . govbrief_volume_label($data['volume']) . ' (' . $data['volume'] . ' stories)';
+    $out .= '</div>';
+    
+    $out .= '<div style="background:#e8f4f8;padding:8px 12px;border-radius:6px;">';
+    $out .= '<strong>Severity:</strong> ' . govbrief_severity_label($data['avg_severity']) . ' (avg ' . $data['avg_severity'] . ')';
+    $out .= '</div>';
+    
+    $out .= '<div style="background:#e8f4f8;padding:8px 12px;border-radius:6px;">';
+    $out .= '<strong>Defining Moments:</strong> ' . $data['defining_moments'];
+    $out .= '</div>';
+    
+    $out .= '</div>';
+
+    // Previous 5 days
+    if (count($recent_scores) > 0) {
+        $out .= '<div style="margin-bottom:12px;font-size:1.03rem;font-weight:500;color:#222;">Previous 5 Days<br>';
+        foreach ($recent_scores as $i => $rs) {
+            if ($rs < 85) $emo = '🟢';
+            elseif ($rs < 110) $emo = '🟡';
+            elseif ($rs < 130) $emo = '🟠';
+            elseif ($rs < 150) $emo = '🔴';
+            else $emo = '🚨';
+
+            $out .= '<span style="font-size:1.15em;font-weight:600;letter-spacing:1px;margin-right:3px;">' . $emo . '</span>';
+            $out .= '<span style="font-size:1.02em;font-weight:600;color:#24292f;margin-right:10px;">' . $rs . '</span>';
+            if ($i < count($recent_scores) - 1) {
+                $out .= '<span style="color:#bbb;font-size:1.1em;margin-right:8px;">|</span>';
+            }
+        }
+        $out .= '</div>';
+    }
+
+    // Explainer
+    $out .= '<div style="margin-top:8px;font-size:0.9rem;color:#555;line-height:1.5;border-top:1px solid #ddd;padding-top:10px;">';
+    $out .= '100 = normal day. Volume is headline count. Stories weighted by significance. Defining Moments are the ones history remembers.';
+    $out .= '</div>';
+
+    $out .= '</div>';
+
+    return $out;
+}
+
+// Register the new shortcode (keep old one for backwards compatibility)
+add_shortcode('intensity-weather', 'govbrief_weather_report_shortcode');
