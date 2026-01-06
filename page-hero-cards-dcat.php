@@ -188,19 +188,7 @@ get_header();
             font-size: 72px;
         }
         
-        .hero-logo-date {
-            color: var(--dcat-gray);
-            font-size: 12px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            display: block;
-            margin-top: 5px;
-        }
-        
-        .hero-card-export .hero-logo-date {
-            font-size: 36px;
-            margin-top: 15px;
-        }
+
 
         /* Main Content */
         .hero-content {
@@ -449,7 +437,6 @@ get_header();
                         </svg>
                         <span class="hero-logo-text">TOP TOPIC</span>
                     </div>
-                    <span class="hero-logo-date"><?php echo $display_date; ?></span>
                 </div>
                 
                 <div class="hero-content">
@@ -493,7 +480,6 @@ get_header();
                         </svg>
                         <span class="hero-logo-text">TOP TOPIC</span>
                     </div>
-                    <span class="hero-logo-date"><?php echo $display_date; ?></span>
                 </div>
                 
                 <div class="hero-content">
