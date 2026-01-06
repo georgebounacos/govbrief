@@ -5,30 +5,41 @@ This repository contains custom theme and plugin code for GovBrief Today.
 ## Structure
 
 ```
-wp-content/
-  themes/
-    generatepress-child/    # Custom child theme
-  plugins/
-    gov-brief-intensity-score/      # Intensity scoring plugin
-    govbrief-publisher-simple/      # Publishing automation plugin
+generatepress-child/          # This folder = git repo root
+  functions.php               # Shortcodes, utilities
+  style.css                   # Child theme styles
+  page-*.php                  # Custom page templates
+  social-brief-template*.php  # Social image generation
+  clear-cache-admin.php       # Cache management
 ```
 
-## Deployment
-
-Changes pushed to the `main` branch automatically deploy to the live Pagely site via GitHub Actions.
+Related plugins (not in this repo):
+```
+wp-content/plugins/
+  gov-brief-intensity-score/      # Intensity scoring
+  GBT-Shortcode-Finder/           # Shortcode audit tool
+  govbrief-publisher-simple/      # Publishing automation
+```
 
 ## Local Development
 
-Your working directory: `C:\Users\georg\Documents\govbrief-repo`
+**Working directory / Git repo:**
+`C:\Users\georg\Local Sites\govbrief-today-dev\app\public\wp-content\themes\generatepress-child`
 
-To work on files:
-1. Edit files in the repo directory
-2. Test on your Local by WP Flywheel site
-3. Commit: `git add -A && git commit -m "Your message"`
-4. Push: `git push origin main`
-5. GitHub Actions deploys automatically
+**GitHub:** https://github.com/georgebounacos/govbrief
 
-## Old Working Location
+## Deploy Workflow
 
-The old Git repo at `C:\Users\georg\Local Sites\govbrief-today-dev\app\public\wp-content\themes\generatepress-child` 
-is now DEPRECATED. Work from `C:\Users\georg\Documents\govbrief-repo` instead.
+1. Edit and test in Local by Flywheel
+2. Commit: `git add -A; git commit -m "Your message"; git push`
+3. Copy changed files to OneDrive Desktop
+4. Upload to Pagely via FileZilla
+
+## Cache Clearing
+
+Append `?clear_gb_cache=1` to any URL while logged in as admin.
+
+## Related Docs
+
+- Prompt library: `C:\Users\georg\OneDrive\Desktop\claude\prompts`
+- Context files: `C:\Users\georg\OneDrive\Desktop\claude\context`
