@@ -219,10 +219,10 @@ class GovBriefPublisherSimple {
             wp_reset_postdata();
         }
         
-        // Get Fighting Back headline
+        // Get Fighting Back headlines (allow multiple)
         $args = array(
             'post_type' => 'daily-headlines',
-            'posts_per_page' => 1,
+            'posts_per_page' => -1,
             'orderby' => 'date',
             'order' => 'ASC',
             'meta_query' => array(
@@ -237,12 +237,14 @@ class GovBriefPublisherSimple {
         );
         
         $fighting_back_query = new WP_Query($args);
-        
+
         if ($fighting_back_query->have_posts()) {
-            $fighting_back_query->the_post();
-            $headlines[] = "FIGHTING BACK: " . get_the_title();
-            $urls[] = get_field('headline_link');
-            $sources[] = get_field('headline_source');
+            while ($fighting_back_query->have_posts()) {
+                $fighting_back_query->the_post();
+                $headlines[] = "FIGHTING BACK: " . get_the_title();
+                $urls[] = get_field('headline_link');
+                $sources[] = get_field('headline_source');
+            }
             wp_reset_postdata();
         }
         
