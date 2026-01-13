@@ -184,8 +184,8 @@ class GovBriefPublisherSimple {
      * Get headlines and links for the given date
      */
     public function get_headlines_and_links($date) {
-        // Format date for ACF field comparison
-        $formatted_date = date('Y-m-d', strtotime($date));
+        // Format date for ACF field comparison (ACF stores dates as Ymd, not Y-m-d)
+        $formatted_date = date('Ymd', strtotime($date));
         
         // Get regular headlines
         $args = array(
