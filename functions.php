@@ -1772,10 +1772,6 @@ add_filter('acf/format_value/type=wysiwyg', function($value){
   return is_string($value) ? $value : '';
 }, 99);
 
-    // Also clear homepage cards cache since it links to latest post
-    delete_transient('govbrief_homepage_cards_6');
-
-
 // === GovBrief Cache Clearing Tool ===
 // Usage: Add ?clear_gb_cache=1 to any URL while logged in as admin
 // Example: https://govbrief.today/?clear_gb_cache=1
