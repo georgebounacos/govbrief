@@ -1,0 +1,1002 @@
+/* ===========================
+   ADMIN-ONLY LINKS 
+   =========================== */
+.admin-only-links {
+    display: none;
+}
+
+body.admin-bar .admin-only-links {
+    display: block;
+}
+
+/* ===========================
+   MAIN CONTENT & LAYOUT FIXES
+   =========================== */
+.main-container {
+    display: flex;
+    justify-content: space-between;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-top: 10px;
+}
+
+.content-area {
+    flex: 1;
+    padding-right: 20px;
+}
+
+/* Reduce extra space above \"Latest Headlines\" */
+h2.latest-headlines-title { 
+    margin-top: 10px !important;
+}
+
+/* ===========================
+   HEADLINE & POST STYLING
+   =========================== */
+.wp-block-query .wp-block-post {
+    padding: 5px 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.wp-block-group__inner-container {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.wp-block-post h2 {
+    margin: 8px 0 !important;
+    padding: 0 !important;
+    font-size: 1.2rem !important;
+    line-height: 1.4 !important;
+}
+
+.wp-block-post::after {
+    content: none !important;
+    display: none !important;
+}
+
+.wp-block-post h2 a {
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: inline-block;
+}
+
+ul.alignfull.wp-block-post-template {
+    padding: 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+}
+
+.wp-block-post {
+    margin-bottom: 2px !important;
+}
+
+.wp-block-group {
+    padding-bottom: 5px !important;
+    margin-bottom: 5px !important;
+}
+
+/* ===========================
+   METADATA HIDE (DATE & AUTHOR)
+   =========================== */
+.entry-header .entry-meta,
+.entry-header .entry-meta .posted-on,
+.entry-header .posted-on time,
+.entry-header .entry-date,
+.entry-header .entry-meta .byline,
+.entry-header .byline .author,
+.entry-header a[rel=\"author\"],
+.entry-meta {
+    display: none !important;
+}
+
+/* ===========================
+   READ MORE BUTTON 
+   =========================== */
+.read-more-button {
+    display: inline-flex !important;
+    align-items: center;
+    background-color: #007bff !important; 
+    color: white !important;
+    padding: 10px 16px !important;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 1rem !important;
+    text-align: center !important;
+    transition: background 0.3s;
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.read-more-button:hover {
+    background-color: #0056b3 !important;
+}
+
+/* ===========================
+   TAXONOMY LABEL STYLING (TAGS)
+   =========================== */
+.pt-cv-taxoterm.above_title a {
+    background-color: transparent !important;
+    color: #F58220 !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    padding: 2px 6px !important;
+    border-radius: 2px !important;
+    border: 2px solid #F58220 !important;
+    display: inline-block !important;
+}
+
+.pt-cv-taxoterm.above_title a:hover {
+    background-color: blue(0, 100, 0, 0.1) !important;
+    color: black !important;
+}
+
+/* ===========================
+   EXPAND/COLLAPSE ICON STYLING
+   =========================== */
+.wp-block-post .toggle-icon {
+    font-size: 20px;
+    padding: 5px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+/* ===========================
+   CONTENT VIEWS PRO BUTTON STYLING
+   =========================== */
+.pt-cv-ctf-value a {
+    display: inline-block;
+    padding: 12px 15px;
+    background-color: #1A659E;
+    color: transparent; /* Hide original text */
+    font-size: 0.1px; /* Hide original text */
+    border: none;
+    text-decoration: none;
+    border-radius: 5px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+    transition: all 0.3s ease;
+    font-weight: 600;
+    text-align: center;
+    min-width: 140px;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border: 1px solid rgba(0, 123, 255, 0.2);
+}
+
+.pt-cv-ctf-value a:hover {
+    background-color: #0069d9;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Add the replacement text with enhanced styling */
+.pt-cv-ctf-value a::after {
+    content: \"Read Article\";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
+}
+
+
+/* Featured image styling */
+.featured-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    text-align: center;
+    width: 100%;
+}
+.wp-caption-text {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+}
+.wp-caption-text, .thumb-caption-text {
+    display: block;
+    width: 100%;
+    line-height: 1.2;  /* Increases spacing so text isn\'t cut off */
+    overflow: visible;  /* Ensures text doesn\'t get clipped */
+    white-space: normal;  /* Prevents weird text wrapping */
+    padding-bottom: 5px;  /* Adds space to prevent cutoff */
+}
+
+/* Make sidebar narrower while still accommodating form */
+.widget-area.sidebar.is-right-sidebar {
+    width: 25% !important;
+    min-width: 280px !important; /* Reduced from 320px */
+    max-width: 300px !important; /* Reduced from 350px */
+    padding-right: 10px !important; /* Ensure content doesn\'t run off edge */
+    box-sizing: border-box !important;
+}
+
+/* Adjust content area width */
+#primary {
+    width: 75% !important;
+}
+
+/* Fix the Substack iframe */
+#right-sidebar iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: auto !important; /* Remove min-width constraint */
+    height: 380px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    /* REMOVED problematic transform scale */
+    transform: none !important;
+    transform-origin: center !important;
+}
+
+/* Fix navigation menu - more specific selectors */
+header .main-navigation,
+header .nav-menu,
+header .main-header-menu {
+    display: flex !important;
+    justify-content: flex-end !important;
+}
+
+header .main-navigation ul,
+header .nav-menu ul,
+header .main-header-menu ul {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+}
+
+header .main-navigation li,
+header .nav-menu li,
+header .main-header-menu li {
+    display: inline-block !important;
+    white-space: nowrap !important;
+    margin-left: 20px !important;
+}
+
+/* Make sure everything inside sidebar fits */
+.inside-right-sidebar {
+    width: 100% !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Make sidebar content responsive */
+.inside-right-sidebar > * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* REVISED SUBSTACK EMBED STYLES */
+/* ===========================
+  SUBSTACK EMBED
+   =========================== */
+.embed-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+  background: #f7fbfd;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden; /* Prevent overflow issues */
+  margin: 0 auto;
+}
+
+.embed-wrapper iframe {
+  width: 100% !important;
+  max-width: 480px !important;
+  height: 320px !important;
+  border: 1px solid #EEE !important;
+  background: white !important;
+  transform: none !important; /* Override any transforms */
+  margin: 0 auto !important;
+  display: block !important;
+}
+
+/* Target any Substack iframe specifically */
+iframe[src*=\"substack.com\"] {
+  transform: none !important;
+  scale: 1 !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  height: 320px !important;
+  margin: 0 auto !important;
+}
+
+/* Fix for mobile screens */
+@media (max-width: 767px) {
+  .embed-wrapper {
+    padding: 0.5rem 0;
+  }
+  
+  .embed-wrapper iframe,
+  iframe[src*=\"substack.com\"] {
+    max-width: 95% !important;
+    width: 95% !important;
+    height: 320px !important;
+    transform: none !important;
+  }
+}
+
+/* Edge-specific fixes */
+@supports (-ms-ime-align:auto) {
+  .embed-wrapper iframe,
+  iframe[src*=\"substack.com\"] {
+    transform: none !important;
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* Ensure sidebar container properly contains everything */
+.widget-area.sidebar.is-right-sidebar {
+    overflow: visible !important; /* Changed from hidden to visible */
+}
+
+.copyright-bar {
+display:none;}
+
+/* ===========================
+   ELEMENTOR MOBILE MENU FIX
+   =========================== */
+
+/* Make sure the mobile menu container is properly visible */
+.elementor-menu-toggle.elementor-active + .elementor-nav-menu__container {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    height: auto !important;
+    max-height: 80vh !important; /* Allow scrolling for long menus */
+    overflow-y: auto !important;
+    z-index: 9999 !important;
+    transform: none !important;
+}
+
+/* Style the mobile menu items */
+.elementor-nav-menu--dropdown {
+    background-color: white !important;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1) !important;
+    padding: 15px 0 !important;
+}
+
+.elementor-nav-menu--dropdown a {
+    color: #333 !important;
+    padding: 12px 20px !important;
+    font-size: 16px !important;
+}
+
+/* Fix for Elementor hamburger menu icon display */
+.elementor-menu-toggle i {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Force mobile menu to appear at the right breakpoint */
+@media (max-width: 767px) {
+    .elementor-nav-menu--main {
+        display: none !important;
+    }
+    
+    .elementor-menu-toggle {
+        display: flex !important;
+    }
+}
+
+/* Ensure menu container remains fixed after toggle */
+.elementor-nav-menu--dropdown.elementor-nav-menu__container {
+    position: fixed !important;
+    top: 60px !important; /* Adjust based on your header height */
+    left: 0 !important;
+    width: 100% !important;
+}
+/* ===========================
+   5 DAY INTENSITY SCORING
+   =========================== */
+
+.intensity-day {
+  display: inline-block;
+  width: 2em;
+  height: 2em;
+  line-height: 2em;
+  border-radius: 50%;
+  text-align: center;
+  margin: 0 .25em;
+  font-weight: bold;
+  background: #ddd;  /* fallback */
+}
+
+/* thresholds */
+/* very-low: under 85 */
+.intensity-day.intensity-very-low { background: #9ccc65 !important; }
+/* low: 85 to 109 */
+.intensity-day.intensity-low      { background: #cddc39 !important; }
+/* medium: 110 to 129 */
+.intensity-day.intensity-medium   { background: #ffc107 !important; }
+/* high: 130 to 149 */
+.intensity-day.intensity-high     { background: #ff5722 !important; }
+/* extreme: 150 and above */
+.intensity-day.intensity-extreme  { background: #f44336 !important; }
+
+/* ===========================
+   FEATURED IMAGE CAPTION - CONSTRAINED WIDTH
+   =========================== */
+
+/* Main caption container - constrain to reasonable width */
+.wp-caption.thumb-caption {
+    max-width: 800px !important;  /* Same as your intensity/trending boxes */
+    width: 100% !important;
+    margin: 2rem auto !important;
+    box-sizing: border-box;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* Caption text styling */
+.wp-caption-text.thumb-caption-text {
+    padding: 1rem 1.5rem !important;
+    margin: 0 !important;
+    font-size: 0.9rem !important;
+    color: #666 !important;
+    font-style: italic !important;
+    line-height: 1.4 !important;
+    background: #f8f9fa !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure image stays within container */
+.wp-caption.thumb-caption img {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+}
+/* Hide mobile by default, show desktop widget */
+.desktop-only { display: block; }
+.mobile-only { display: none; }
+
+@media (max-width: 500px) {
+  .desktop-only { display: none; }
+  .mobile-only { display: block; }
+}
+
+/* Style the mobile subscribe button */
+.signup-button {
+  display: block;
+  width: 90%;
+  max-width: 400px;
+  margin: 24px auto;
+  padding: 18px 0;
+  font-size: 1.3em;
+  font-weight: 700;
+  text-align: center;
+  background: #005bb5;
+  color: #fff !important;
+  border-radius: 10px;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.signup-button:hover {
+  background: #0073e6;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.13);
+}
+
+
+.govbrief-center-container {
+  width: 100%;
+  max-width: 600px;  /* Or 720px if you want wider, but 600–720px is best for forms */
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 16px; /* Prevents the box from hugging the edge on mobile */
+}
+
+@media (max-width: 600px) {
+  .gb-intensity-container {
+    min-width: 0;
+    max-width: 98vw;
+    padding: 10px 6px;
+    font-size: 1em;
+  }
+  .gb-intensity-label {
+    font-size: 1em;
+    padding: 8px 10px;
+    word-break: break-word; /* If label gets long */
+  }
+}
+/* For the Action Center container */
+.action-center-container {
+    max-width: 430px;
+    margin: 32px auto 0 auto !important;
+    padding: 28px 16px 24px 16px;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(50,50,50,0.07);
+}
+
+/* Responsive for mobile */
+@media (max-width: 600px) {
+    .action-center-container {
+        max-width: 100vw;
+        padding: 18px 0 18px 0;
+			margin-left:0;
+			margin-right:0;
+			border-radius:0;
+    }
+}
+
+/* Content Views for Just Latest */
+@media (max-width: 600px) {
+  .cvp-latest-headlines {
+    max-width: 98vw !important;   /* or whatever fits your grid */
+    margin: 0 auto !important;    /* center the whole thing */
+    padding: 0 1vw;               /* little bit of buffer */
+    box-sizing: border-box;
+  }
+.cvp-latest-headlines .pt-cv-content-item {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 8px 16px 8px; /* Add a bit of internal space */
+  box-sizing: border-box;
+}
+/* Fix Featured Image Margins */
+/* Override the grid container for featured images */
+.featured-image.page-header-image-single.grid-container {
+    max-width: 90%;
+    margin: 2rem auto;
+    padding: 0;
+}
+
+/* Style the caption wrapper */
+.featured-image .wp-caption.thumb-caption {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin: 0;
+}
+
+/* Ensure image stays responsive */
+.featured-image .wp-caption.thumb-caption img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Style the caption text */
+.featured-image .wp-caption-text.thumb-caption-text {
+    padding: 1rem 1.5rem;
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+    line-height: 1.4;
+    background: #f8f9fa;
+}
+	
+	/* ===========================
+   MOBILE FULL-WIDTH FIX - AGGRESSIVE OVERRIDE
+   =========================== */
+@media (max-width: 768px) {
+  
+  /* Force both boxes to full mobile width */
+  .gb-intensity-container,
+  .gb-trending-container {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    min-width: 95vw !important;
+    margin-left: 2.5vw !important;
+    margin-right: 2.5vw !important;
+    margin-top: 16px !important;
+    margin-bottom: 16px !important;
+    padding: 12px !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Adjust internal spacing for mobile */
+  .gb-intensity-label {
+    padding: 6px 12px !important;
+    font-size: 0.9em !important;
+  }
+  
+  .trending-header {
+    font-size: 1.05em !important;
+  }
+  
+  .trending-explanation {
+    font-size: 0.85em !important;
+  }
+  
+  .category-tag, .topic-tag {
+    font-size: 0.8em !important;
+    padding: 4px 8px !important;
+  }
+}
+	
+	/* ========================================
+   GovBrief New Jersey - Card Layout
+   ======================================== */
+
+.nj-page-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+/* Date Picker Section */
+.nj-date-picker {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.date-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.date-picker-container label {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+#nj-date-input {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.quick-select {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.quick-select span {
+    font-weight: 600;
+    color: #64748b;
+}
+
+.quick-date-btn {
+    background: #64748b;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.quick-date-btn:hover {
+    background: #475569;
+}
+
+/* Header Section */
+.nj-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.nj-title {
+    font-size: 48px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.nj-badge {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #78350f;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+}
+
+.nj-date {
+    font-size: 24px;
+    color: #475569;
+    font-weight: 400;
+}
+
+/* Stats Bar */
+.nj-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.stat-item {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-number {
+    display: block;
+    font-size: 36px;
+    font-weight: 800;
+    color: #2563eb;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Stories Grid */
+.nj-stories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+/* Card Styling */
+.nj-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.nj-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+}
+
+.card-header {
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    font-weight: 700;
+}
+
+.category-name {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.story-number {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.card-body {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.nj-story-badge {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #78350f;
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 0.3px;
+}
+
+.federal-story-badge {
+    background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+    color: #1e293b;
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 0.3px;
+}
+
+.card-headline {
+    font-size: 18px;
+    line-height: 1.4;
+    margin-bottom: 15px;
+    font-weight: 700;
+    flex-grow: 1;
+}
+
+.card-headline a {
+    color: #1e293b;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.card-headline a:hover {
+    color: #2563eb;
+}
+
+.card-callout {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-left: 4px solid #2563eb;
+    padding: 12px 16px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e40af;
+}
+
+.card-source {
+    font-size: 13px;
+    color: #64748b;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+    margin-top: auto;
+}
+
+.card-source strong {
+    color: #475569;
+}
+
+/* No Stories Message */
+.nj-no-stories {
+    background: white;
+    padding: 60px 40px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nj-no-stories p {
+    font-size: 18px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+    .nj-stories-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .nj-title {
+        font-size: 36px;
+    }
+    
+    .nj-date {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 640px) {
+    .nj-page-wrapper {
+        padding: 15px;
+    }
+    
+    .nj-title {
+        font-size: 28px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .nj-badge {
+        font-size: 14px;
+    }
+    
+    .date-picker-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .quick-select {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .quick-date-btn {
+        width: 100%;
+    }
+}
+/* ===========================
+   MOBILE - OVERRIDE GENERATEPRESS CONTAINERS
+   =========================== */
+
+@media (max-width: 768px) {
+    
+    /* Remove max-width restrictions on mobile */
+    .main-container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Make content area full width */
+    .content-area {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Remove primary column width restrictions */
+    #primary {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Hide sidebar on mobile */
+    .widget-area.sidebar {
+        display: none !important;
+    }
+    
+    /* Ensure Elementor sections are full width */
+    .elementor-section {
+        margin: 0 !important;
+        padding: 0 10px !important;
+    }
+    
+}
