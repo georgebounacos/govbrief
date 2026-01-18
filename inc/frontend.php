@@ -127,6 +127,24 @@ function govbrief_add_lazy_loading_to_content_images($content) {
 }
 add_filter('the_content', 'govbrief_add_lazy_loading_to_content_images', 15);
 
+// === Share Buttons on Single Posts ===
+function govbrief_append_share_buttons($content) {
+    // Only on single posts (not pages, not custom post types, not in admin)
+    if (!is_singular('post') || is_admin()) {
+        return $content;
+    }
+
+    // Get share buttons HTML
+    $share_html = '<div class="govbrief-share-wrapper" style="margin-top:32px;padding-top:24px;border-top:1px solid #e5e7eb;">';
+    $share_html .= '<p style="margin:0 0 12px 0;font-size:0.9rem;color:#6b7280;font-weight:500;">Share this brief:</p>';
+    $share_html .= govbrief_static_share_links(get_the_ID());
+    $share_html .= '</div>';
+
+    return $content . $share_html;
+}
+add_filter('the_content', 'govbrief_append_share_buttons', 20);
+
+
 // Ensure images have width and height to prevent CLS
 function govbrief_add_image_dimensions($html, $post_id, $post_thumbnail_id) {
     if (empty($html) || !$post_thumbnail_id) {
