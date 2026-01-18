@@ -81,3 +81,78 @@ function custom_add_post_thumbnail_caption($html, $post_id, $post_thumbnail_id) 
 
     return $html;
 }
+
+
+// === Image Optimization for Core Web Vitals ===
+
+// Add fetchpriority="high" to LCP images (featured images on single posts/homepage)
+function govbrief_add_fetchpriority_to_lcp($html, $post_id, $post_thumbnail_id) {
+    if (empty($html)) {
+        return $html;
+    }
+
+    // Add fetchpriority for above-the-fold images
+    if (is_singular() || is_front_page() || is_home()) {
+        // Only add if not already present
+        if (strpos($html, 'fetchpriority') === false) {
+            $html = str_replace('<img ', '<img fetchpriority="high" ', $html);
+        }
+    }
+
+    return $html;
+}
+add_filter('post_thumbnail_html', 'govbrief_add_fetchpriority_to_lcp', 5, 3);
+
+// Add loading="lazy" to content images (below the fold)
+function govbrief_add_lazy_loading_to_content_images($content) {
+    if (empty($content)) {
+        return $content;
+    }
+
+    // Add loading="lazy" to images that don't have it
+    $content = preg_replace_callback(
+        '/<img([^>]+)>/i',
+        function($matches) {
+            $img_tag = $matches[0];
+            // Skip if already has loading attribute or fetchpriority (LCP images)
+            if (strpos($img_tag, 'loading=') !== false || strpos($img_tag, 'fetchpriority') !== false) {
+                return $img_tag;
+            }
+            return str_replace('<img ', '<img loading="lazy" ', $img_tag);
+        },
+        $content
+    );
+
+    return $content;
+}
+add_filter('the_content', 'govbrief_add_lazy_loading_to_content_images', 15);
+
+// Ensure images have width and height to prevent CLS
+function govbrief_add_image_dimensions($html, $post_id, $post_thumbnail_id) {
+    if (empty($html) || !$post_thumbnail_id) {
+        return $html;
+    }
+
+    // Check if dimensions already exist
+    if (preg_match('/width=["\']\d+["\']/', $html) && preg_match('/height=["\']\d+["\']/', $html)) {
+        return $html;
+    }
+
+    // Get image dimensions
+    $image_data = wp_get_attachment_image_src($post_thumbnail_id, 'full');
+    if ($image_data && !empty($image_data[1]) && !empty($image_data[2])) {
+        $width = $image_data[1];
+        $height = $image_data[2];
+
+        // Add dimensions if missing
+        if (strpos($html, 'width=') === false) {
+            $html = str_replace('<img ', '<img width="' . esc_attr($width) . '" ', $html);
+        }
+        if (strpos($html, 'height=') === false) {
+            $html = str_replace('<img ', '<img height="' . esc_attr($height) . '" ', $html);
+        }
+    }
+
+    return $html;
+}
+add_filter('post_thumbnail_html', 'govbrief_add_image_dimensions', 8, 3);
