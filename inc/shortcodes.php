@@ -964,7 +964,7 @@ function govbrief_defining_moments_shortcode($atts) {
                     $title = $post->post_title;
                     $link = get_field('headline_link', $post->ID);
                     $source = get_field('headline_source', $post->ID);
-                    $summary = get_field('defining_moment_summary', $post->ID);
+                    $callout = get_field('story_callout', $post->ID);
                     $headline_date = get_field('headline_date', $post->ID);
 
                     // Get primary category
@@ -996,8 +996,8 @@ function govbrief_defining_moments_shortcode($atts) {
                         <div class="story-content">
                             <h3><a href="<?php echo esc_url($link); ?>" target="_blank" rel="noopener"><?php echo esc_html($title); ?></a></h3>
 
-                            <?php if ($summary): ?>
-                                <div class="callout-box"><?php echo esc_html($summary); ?></div>
+                            <?php if ($callout): ?>
+                                <div class="callout-box"><?php echo esc_html($callout); ?></div>
                             <?php endif; ?>
 
                             <?php if ($source): ?>
@@ -1029,8 +1029,8 @@ function govbrief_defining_moments_shortcode($atts) {
     }
     .dm-month-header:first-child { margin-top: 0; }
 
-    /* Card styles */
-    .cards-container {
+    /* Card styles - matching govbrief_cards exactly */
+    .govbrief-defining-moments .cards-container {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
         gap: 20px;
@@ -1038,20 +1038,20 @@ function govbrief_defining_moments_shortcode($atts) {
         margin: 0 auto;
     }
     @media (max-width: 768px) {
-        .cards-container { grid-template-columns: 1fr; }
+        .govbrief-defining-moments .cards-container { grid-template-columns: 1fr; }
     }
-    .story-card {
+    .govbrief-defining-moments .story-card {
         background: white;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         overflow: hidden;
         transition: transform 0.2s, box-shadow 0.2s;
     }
-    .story-card:hover {
+    .govbrief-defining-moments .story-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     }
-    .category-bar {
+    .govbrief-defining-moments .category-bar {
         padding: 12px 15px;
         color: white;
         font-weight: 700;
@@ -1062,19 +1062,19 @@ function govbrief_defining_moments_shortcode($atts) {
         justify-content: space-between;
         align-items: center;
     }
-    .story-number { opacity: 0.9; }
-    .story-content { padding: 20px; }
-    .story-content h3 {
+    .govbrief-defining-moments .story-number { opacity: 0.9; }
+    .govbrief-defining-moments .story-content { padding: 20px; }
+    .govbrief-defining-moments .story-content h3 {
         margin: 0 0 15px 0;
         font-size: 18px;
         line-height: 1.4;
     }
-    .story-content h3 a {
+    .govbrief-defining-moments .story-content h3 a {
         color: #1a1a1a;
         text-decoration: none;
     }
-    .story-content h3 a:hover { color: #2563eb; }
-    .callout-box {
+    .govbrief-defining-moments .story-content h3 a:hover { color: #2563eb; }
+    .govbrief-defining-moments .callout-box {
         background: #f3f4f6;
         border-left: 4px solid #2563eb;
         padding: 12px 15px;
@@ -1083,13 +1083,13 @@ function govbrief_defining_moments_shortcode($atts) {
         color: #1f2937;
         font-size: 15px;
     }
-    .card-source {
+    .govbrief-defining-moments .card-source {
         color: #6b7280;
         font-size: 14px;
         margin: 10px 0 0 0;
         font-style: italic;
     }
-    .card-date {
+    .govbrief-defining-moments .card-date {
         color: #9ca3af;
         font-size: 13px;
         margin: 10px 0 0 0;
