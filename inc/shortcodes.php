@@ -897,6 +897,212 @@ function govbrief_cards_shortcode($atts) {
 add_shortcode('govbrief_cards', 'govbrief_cards_shortcode');
 
 
+// === Defining Moments Archive Shortcode ===
+function govbrief_defining_moments_shortcode($atts) {
+    $atts = shortcode_atts([
+        'year' => date('Y')
+    ], $atts);
+
+    $year = intval($atts['year']);
+    $category_colors = govbrief_get_category_colors();
+
+    // Query all L3 headlines for the year
+    $dm_posts = get_posts([
+        'post_type' => 'daily-headlines',
+        'posts_per_page' => -1,
+        'meta_query' => [
+            'relation' => 'AND',
+            [
+                'key' => 'severity_level',
+                'value' => '3',
+                'compare' => '='
+            ],
+            [
+                'key' => 'headline_date',
+                'value' => [$year . '-01-01', $year . '-12-31'],
+                'compare' => 'BETWEEN',
+                'type' => 'DATE'
+            ]
+        ],
+        'orderby' => 'meta_value',
+        'meta_key' => 'headline_date',
+        'order' => 'ASC'
+    ]);
+
+    if (empty($dm_posts)) {
+        return '<p>No defining moments found for ' . $year . '.</p>';
+    }
+
+    // Group by month
+    $by_month = [];
+    foreach ($dm_posts as $post) {
+        $headline_date = get_field('headline_date', $post->ID);
+        $month_key = date('Y-m', strtotime($headline_date));
+        if (!isset($by_month[$month_key])) {
+            $by_month[$month_key] = [];
+        }
+        $by_month[$month_key][] = $post;
+    }
+
+    // Sort months reverse chronological (newest first)
+    krsort($by_month);
+
+    $total = count($dm_posts);
+
+    ob_start();
+    ?>
+    <div class="govbrief-defining-moments">
+        <?php
+        $counter = 1;
+        foreach ($by_month as $month_key => $posts) {
+            $month_label = date('F Y', strtotime($month_key . '-01'));
+            ?>
+            <h2 class="dm-month-header"><?php echo $month_label; ?></h2>
+            <div class="cards-container">
+                <?php
+                foreach ($posts as $post) {
+                    $title = $post->post_title;
+                    $link = get_field('headline_link', $post->ID);
+                    $source = get_field('headline_source', $post->ID);
+                    $summary = get_field('defining_moment_summary', $post->ID);
+                    $headline_date = get_field('headline_date', $post->ID);
+
+                    // Get primary category
+                    $category = 'Uncategorized';
+                    $primary_cat_id = get_post_meta($post->ID, '_yoast_wpseo_primary_category', true);
+                    if ($primary_cat_id) {
+                        $primary_cat = get_category($primary_cat_id);
+                        if ($primary_cat) {
+                            $category = $primary_cat->name;
+                        }
+                    } else {
+                        $post_categories = wp_get_post_categories($post->ID);
+                        if (!empty($post_categories)) {
+                            $first_cat = get_category($post_categories[0]);
+                            if ($first_cat) {
+                                $category = $first_cat->name;
+                            }
+                        }
+                    }
+
+                    $color = $category_colors[$category] ?? '#6b7280';
+                    $date_display = date('F j, Y', strtotime($headline_date));
+                    ?>
+                    <div class="story-card">
+                        <div class="category-bar" style="background: <?php echo $color; ?>;">
+                            <span><?php echo esc_html($category); ?></span>
+                            <span class="story-number"><?php echo $counter; ?> of <?php echo $total; ?></span>
+                        </div>
+                        <div class="story-content">
+                            <h3><a href="<?php echo esc_url($link); ?>" target="_blank" rel="noopener"><?php echo esc_html($title); ?></a></h3>
+
+                            <?php if ($summary): ?>
+                                <div class="callout-box"><?php echo esc_html($summary); ?></div>
+                            <?php endif; ?>
+
+                            <?php if ($source): ?>
+                                <p class="card-source">Source: <?php echo esc_html($source); ?></p>
+                            <?php endif; ?>
+
+                            <p class="card-date"><?php echo $date_display; ?></p>
+                        </div>
+                    </div>
+                    <?php
+                    $counter++;
+                }
+                ?>
+            </div>
+            <?php
+        }
+        ?>
+    </div>
+
+    <style>
+    .govbrief-defining-moments { margin: 40px 0; }
+    .dm-month-header {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 40px 0 20px 0;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #007cba;
+    }
+    .dm-month-header:first-child { margin-top: 0; }
+
+    /* Card styles */
+    .cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+        .cards-container { grid-template-columns: 1fr; }
+    }
+    .story-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .story-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    .category-bar {
+        padding: 12px 15px;
+        color: white;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 1px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .story-number { opacity: 0.9; }
+    .story-content { padding: 20px; }
+    .story-content h3 {
+        margin: 0 0 15px 0;
+        font-size: 18px;
+        line-height: 1.4;
+    }
+    .story-content h3 a {
+        color: #1a1a1a;
+        text-decoration: none;
+    }
+    .story-content h3 a:hover { color: #2563eb; }
+    .callout-box {
+        background: #f3f4f6;
+        border-left: 4px solid #2563eb;
+        padding: 12px 15px;
+        margin: 15px 0;
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 15px;
+    }
+    .card-source {
+        color: #6b7280;
+        font-size: 14px;
+        margin: 10px 0 0 0;
+        font-style: italic;
+    }
+    .card-date {
+        color: #9ca3af;
+        font-size: 13px;
+        margin: 10px 0 0 0;
+        text-align: left;
+    }
+    </style>
+    <?php
+
+    return ob_get_clean();
+}
+add_shortcode('defining_moments', 'govbrief_defining_moments_shortcode');
+
+
 // === Homepage Mini-Cards Shortcode (OPTIMIZED with caching) ===
 function govbrief_homepage_cards_shortcode($atts) {
     $atts = shortcode_atts([
