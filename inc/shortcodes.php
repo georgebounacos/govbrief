@@ -1369,6 +1369,50 @@ function govbrief_weather_report_shortcode($atts = []) {
 
     $out .= '</div>';
 
+    // Display Defining Moments (L3 headlines) if any exist
+    if ($data['defining_moments'] > 0) {
+        // Query for L3 headlines from this date
+        $dm_args = [
+            'post_type' => 'daily-headlines',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                'relation' => 'AND',
+                [
+                    'key' => 'headline_date',
+                    'value' => $calendar_date,
+                    'compare' => '=',
+                    'type' => 'DATE'
+                ],
+                [
+                    'key' => 'severity_level',
+                    'value' => '3',
+                    'compare' => '='
+                ]
+            ],
+            'orderby' => 'menu_order title',
+            'order' => 'ASC'
+        ];
+
+        $dm_posts = get_posts($dm_args);
+
+        if (!empty($dm_posts)) {
+            $out .= '<div style="margin-bottom:14px;padding:10px 12px;background:#fff8e6;border-left:4px solid #f5a623;border-radius:4px;">';
+
+            foreach ($dm_posts as $dm_post) {
+                $summary = get_field('defining_moment_summary', $dm_post->ID);
+                // Fall back to truncated title if no summary
+                if (empty($summary)) {
+                    $summary = wp_trim_words($dm_post->post_title, 8, '...');
+                }
+                $out .= '<div style="font-size:0.95rem;color:#333;margin-bottom:6px;line-height:1.4;">';
+                $out .= '<span style="color:#f5a623;font-weight:bold;">⚡</span> ' . esc_html($summary);
+                $out .= '</div>';
+            }
+
+            $out .= '</div>';
+        }
+    }
+
     if (count($recent_scores) > 0) {
         $out .= '<div style="margin-bottom:12px;font-size:1.03rem;font-weight:500;color:#222;">Previous 5 Days<br>';
         foreach ($recent_scores as $i => $rs) {

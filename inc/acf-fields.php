@@ -135,6 +135,25 @@ add_action('acf/init', function() {
                 'layout' => 'horizontal',
                 'return_format' => 'value',
             ],
+            [
+                'key' => 'field_govbrief_defining_moment_summary',
+                'label' => 'Defining Moment Summary',
+                'name' => 'defining_moment_summary',
+                'type' => 'text',
+                'instructions' => 'Short 3-5 word summary for the intensity box (e.g., "FBI seizes Georgia ballots", "Asylum family detained").',
+                'required' => 0,
+                'maxlength' => 60,
+                'placeholder' => 'e.g., FBI seizes Georgia ballots',
+                'conditional_logic' => [
+                    [
+                        [
+                            'field' => 'field_govbrief_severity_level',
+                            'operator' => '==',
+                            'value' => '3',
+                        ],
+                    ],
+                ],
+            ],
         ],
         'location' => [
             [
