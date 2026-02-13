@@ -12,7 +12,8 @@ $display_date = $date_obj->format('F j, Y');
 $category_colors = array(
     'Extremism' => '#dc2626', 'Dissent' => '#ea580c', 'Disaster Relief' => '#f59e0b',
     'Foreign Relations' => '#0891b2', 'War' => '#7c2d12', 'Health' => '#16a34a',
-    'Human Rights' => '#db2777', 'Environment' => '#059669', 'Science' => '#0284c7',
+    'Human Rights' => '#db2777', 'Epstein Sex Crime Network' => '#7f1d1d',
+    'Environment' => '#059669', 'Science' => '#0284c7',
     'DEI' => '#7c3aed', 'Voting Rights' => '#6366f1', 'Censorship' => '#ef4444',
     'Economy' => '#10b981', 'Military' => '#78716c', 'Intelligence' => '#475569',
     'Justice Dept' => '#4338ca', 'Courts' => '#7c3aed', 'Criminal Justice' => '#8b5cf6', 'Social Security' => '#e11d48',
