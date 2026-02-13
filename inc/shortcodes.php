@@ -1735,7 +1735,7 @@ function govbrief_epstein_archive_shortcode($atts) {
             </div>
             <div class="epstein-color-key" style="display: flex; align-items: center; gap: 20px; font-size: 13px; color: #6b7280; margin-bottom: 30px; padding: 0 4px;">
                 <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #374151;"></span> Routine coverage</span>
-                <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #92400e;"></span> Escalation</span>
+                <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #1e40af;"></span> Escalation</span>
                 <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #7f1d1d;"></span> Defining Moment</span>
             </div>
         </div>
@@ -1770,7 +1770,7 @@ function govbrief_epstein_archive_shortcode($atts) {
                         $bar_color = '#7f1d1d'; // dark red
                         $severity_label = '⚡ DEFINING MOMENT';
                     } elseif ($severity_int == 2) {
-                        $bar_color = '#92400e'; // amber - clearly distinct from red and gray
+                        $bar_color = '#1e40af'; // dark blue - cool contrast against gray and red
                         $severity_label = '';
                     } else {
                         $bar_color = '#374151'; // dark gray
