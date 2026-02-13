@@ -1755,16 +1755,25 @@ function govbrief_epstein_archive_shortcode($atts) {
                     $severity = get_field('severity_level', $post->ID);
 
                     $date_display = date('F j, Y', strtotime($headline_date));
-                    $day_of_week = date('l', strtotime($headline_date));
 
-                    // Severity indicator for the bar
-                    $severity_label = '';
-                    if ($severity == 3) {
+                    // Severity-driven bar colors:
+                    // L3 (Defining Moment): dark red - these earned it
+                    // L2 (New Normal): dark amber/brown - serious but not screaming
+                    // L1 (Routine): dark gray - coverage, not crisis
+                    $severity_int = intval($severity);
+                    if ($severity_int == 3) {
+                        $bar_color = '#7f1d1d'; // dark red
                         $severity_label = '⚡ DEFINING MOMENT';
+                    } elseif ($severity_int == 2) {
+                        $bar_color = '#78350f'; // dark amber/brown
+                        $severity_label = '';
+                    } else {
+                        $bar_color = '#374151'; // dark gray
+                        $severity_label = '';
                     }
                     ?>
-                    <div class="story-card epstein-card<?php echo $severity == 3 ? ' defining-moment' : ''; ?>">
-                        <div class="epstein-date-bar" style="background: <?php echo $accent_color; ?>;">
+                    <div class="story-card epstein-card<?php echo $severity_int == 3 ? ' defining-moment' : ''; ?>">
+                        <div class="epstein-date-bar" style="background: <?php echo $bar_color; ?>;">
                             <span class="epstein-date"><?php echo $date_display; ?></span>
                             <span class="story-number"><?php echo $counter; ?> of <?php echo $total; ?></span>
                         </div>
