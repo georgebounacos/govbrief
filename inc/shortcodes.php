@@ -1647,3 +1647,256 @@ function govbrief_weather_report_shortcode($atts = []) {
     return $out;
 }
 add_shortcode('intensity-weather', 'govbrief_weather_report_shortcode');
+
+
+// === Epstein Archive Shortcode ===
+// Displays all headlines in the "Epstein Sex Crime Network" category
+// grouped by month (newest first), with date-focused card bars instead
+// of repeating the same category on every card.
+function govbrief_epstein_archive_shortcode($atts) {
+    $atts = shortcode_atts([
+        'year' => ''  // Empty = all years; set to e.g. '2026' to filter
+    ], $atts);
+
+    $accent_color = '#7f1d1d';
+
+    // Get the category object
+    $epstein_cat = get_category_by_slug('epstein-sex-crime-network');
+    if (!$epstein_cat) {
+        // Try by name if slug doesn't match
+        $epstein_cat = get_term_by('name', 'Epstein Sex Crime Network', 'category');
+    }
+    if (!$epstein_cat) {
+        return '<p>Epstein Sex Crime Network category not found. Please create the category first.</p>';
+    }
+
+    // Build meta query for headline_date
+    $meta_query = [
+        [
+            'key' => 'headline_date',
+            'compare' => 'EXISTS'
+        ]
+    ];
+
+    // If year is specified, filter to that year
+    if (!empty($atts['year'])) {
+        $year = intval($atts['year']);
+        $meta_query = [
+            [
+                'key' => 'headline_date',
+                'value' => [$year . '-01-01', $year . '-12-31'],
+                'compare' => 'BETWEEN',
+                'type' => 'DATE'
+            ]
+        ];
+    }
+
+    // Query all headlines in this category
+    $epstein_posts = get_posts([
+        'post_type'      => 'daily-headlines',
+        'posts_per_page' => -1,
+        'category'       => $epstein_cat->term_id,
+        'meta_query'     => $meta_query,
+        'orderby'        => 'meta_value',
+        'meta_key'       => 'headline_date',
+        'order'          => 'ASC'
+    ]);
+
+    if (empty($epstein_posts)) {
+        return '<p>No Epstein coverage found.</p>';
+    }
+
+    // Group by month
+    $by_month = [];
+    foreach ($epstein_posts as $post) {
+        $headline_date = get_field('headline_date', $post->ID);
+        if (!$headline_date) continue;
+        $month_key = date('Y-m', strtotime($headline_date));
+        if (!isset($by_month[$month_key])) {
+            $by_month[$month_key] = [];
+        }
+        $by_month[$month_key][] = $post;
+    }
+
+    // Newest months first
+    krsort($by_month);
+
+    $total = count($epstein_posts);
+
+    ob_start();
+    ?>
+    <div class="govbrief-epstein-archive">
+        <div class="epstein-archive-header">
+            <div class="epstein-header-bar" style="background: <?php echo $accent_color; ?>; padding: 20px 24px; border-radius: 8px; margin-bottom: 30px;">
+                <h2 style="color: #fff; margin: 0 0 6px 0; font-size: 24px; font-weight: 700;">Epstein Sex Crime Network</h2>
+                <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 15px;">
+                    <?php echo $total; ?> stories tracking the global investigation into Jeffrey Epstein's criminal network
+                </p>
+            </div>
+        </div>
+        <?php
+        // Running counter: newest first, so we count down from total
+        $counter = $total;
+        foreach ($by_month as $month_key => $posts) {
+            $month_label = date('F Y', strtotime($month_key . '-01'));
+            $month_count = count($posts);
+            ?>
+            <h2 class="epstein-month-header"><?php echo $month_label; ?> <span class="month-count">(<?php echo $month_count; ?> <?php echo $month_count === 1 ? 'story' : 'stories'; ?>)</span></h2>
+            <div class="epstein-cards-container">
+                <?php
+                // Reverse posts within month so newest appears first
+                $posts = array_reverse($posts);
+                foreach ($posts as $post) {
+                    $title = $post->post_title;
+                    $link = get_field('headline_link', $post->ID);
+                    $source = get_field('headline_source', $post->ID);
+                    $callout = get_field('story_callout', $post->ID);
+                    $headline_date = get_field('headline_date', $post->ID);
+                    $severity = get_field('severity_level', $post->ID);
+
+                    $date_display = date('F j, Y', strtotime($headline_date));
+                    $day_of_week = date('l', strtotime($headline_date));
+
+                    // Severity indicator for the bar
+                    $severity_label = '';
+                    if ($severity == 3) {
+                        $severity_label = '⚡ DEFINING MOMENT';
+                    }
+                    ?>
+                    <div class="story-card epstein-card<?php echo $severity == 3 ? ' defining-moment' : ''; ?>">
+                        <div class="epstein-date-bar" style="background: <?php echo $accent_color; ?>;">
+                            <span class="epstein-date"><?php echo $date_display; ?></span>
+                            <span class="story-number"><?php echo $counter; ?> of <?php echo $total; ?></span>
+                        </div>
+                        <?php if ($severity_label): ?>
+                            <div class="epstein-severity-flag"><?php echo $severity_label; ?></div>
+                        <?php endif; ?>
+                        <div class="story-content">
+                            <h3><a href="<?php echo esc_url($link); ?>" target="_blank" rel="noopener"><?php echo esc_html($title); ?></a></h3>
+
+                            <?php if ($callout): ?>
+                                <div class="callout-box"><?php echo esc_html($callout); ?></div>
+                            <?php endif; ?>
+
+                            <?php if ($source): ?>
+                                <p class="card-source">Source: <?php echo esc_html($source); ?></p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php
+                    $counter--;
+                }
+                ?>
+            </div>
+            <?php
+        }
+        ?>
+    </div>
+
+    <style>
+    /* === Epstein Archive Styles === */
+    .govbrief-epstein-archive { margin: 40px 0; }
+
+    .epstein-month-header {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 40px 0 20px 0;
+        padding-bottom: 10px;
+        border-bottom: 3px solid <?php echo $accent_color; ?>;
+    }
+    .epstein-month-header:first-of-type { margin-top: 0; }
+    .epstein-month-header .month-count {
+        font-size: 16px;
+        font-weight: 400;
+        color: #6b7280;
+    }
+
+    .epstein-cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+        .epstein-cards-container { grid-template-columns: 1fr; }
+    }
+
+    .epstein-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .epstein-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    .epstein-card.defining-moment {
+        border: 2px solid <?php echo $accent_color; ?>;
+    }
+
+    .epstein-date-bar {
+        padding: 12px 15px;
+        color: white;
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .epstein-date-bar .epstein-date {
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 11px;
+    }
+    .epstein-date-bar .story-number {
+        opacity: 0.9;
+        font-size: 11px;
+    }
+
+    .epstein-severity-flag {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 6px 15px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .epstein-card .story-content { padding: 20px; }
+    .epstein-card .story-content h3 {
+        margin: 0 0 15px 0;
+        font-size: 18px;
+        line-height: 1.4;
+    }
+    .epstein-card .story-content h3 a {
+        color: #1a1a1a;
+        text-decoration: none;
+    }
+    .epstein-card .story-content h3 a:hover { color: <?php echo $accent_color; ?>; }
+    .epstein-card .callout-box {
+        background: #f3f4f6;
+        border-left: 4px solid <?php echo $accent_color; ?>;
+        padding: 12px 15px;
+        margin: 15px 0;
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 15px;
+    }
+    .epstein-card .card-source {
+        color: #6b7280;
+        font-size: 14px;
+        margin: 10px 0 0 0;
+        font-style: italic;
+    }
+    </style>
+    <?php
+
+    return ob_get_clean();
+}
+add_shortcode('epstein_archive', 'govbrief_epstein_archive_shortcode');
