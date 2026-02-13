@@ -1733,6 +1733,11 @@ function govbrief_epstein_archive_shortcode($atts) {
                     <?php echo $total; ?> stories tracking the global investigation into Jeffrey Epstein's criminal network
                 </p>
             </div>
+            <div class="epstein-color-key" style="display: flex; align-items: center; gap: 20px; font-size: 13px; color: #6b7280; margin-bottom: 30px; padding: 0 4px;">
+                <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #374151;"></span> Routine coverage</span>
+                <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #78350f;"></span> Escalation</span>
+                <span style="display: flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #7f1d1d;"></span> Defining Moment</span>
+            </div>
         </div>
         <?php
         // Running counter: newest first, so we count down from total
