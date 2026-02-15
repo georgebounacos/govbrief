@@ -12,7 +12,7 @@ $display_date = $date_obj->format('ymd'); // 251011 format
 // Your categories in priority order
 $categories = array(
     'Extremism', 'Dissent', 'Disaster Relief', 'Foreign Relations', 'War', 'Health',
-    'Human Rights', 'Environment', 'Science', 'DEI', 'Voting Rights', 'Censorship',
+    'Human Rights', 'Epstein Sex Crime Network', 'Environment', 'Science', 'DEI', 'Voting Rights', 'Censorship',
     'Economy', 'Military', 'Intelligence', 'Courts', 'Criminal Justice', 'Social Security',
     'Immigration', 'Education', 'Oversight', 'Congress', 'Federal Personnel', 'Transportation',
     'Data', 'Propaganda', 'Religion', 'Media', 'Arts', 'Grift', 'Protest', 'Fighting Back'
@@ -22,7 +22,7 @@ $categories = array(
 $category_colors = array(
     'Extremism' => '#dc2626', 'Dissent' => '#ea580c', 'Disaster Relief' => '#d97706',
     'Foreign Relations' => '#2563eb', 'War' => '#7c2d12', 'Health' => '#16a34a',
-    'Human Rights' => '#db2777', 'Environment' => '#059669', 'Science' => '#0891b2',
+    'Human Rights' => '#db2777', 'Epstein Sex Crime Network' => '#7f1d1d', 'Environment' => '#059669', 'Science' => '#0891b2',
     'DEI' => '#7c3aed', 'Voting Rights' => '#4f46e5', 'Censorship' => '#dc2626',
     'Economy' => '#16a34a', 'Military' => '#475569', 'Intelligence' => '#1e293b',
     'Courts' => '#7c3aed', 'Criminal Justice' => '#be123c', 'Social Security' => '#0d9488',
